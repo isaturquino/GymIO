@@ -1,0 +1,208 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+body {
+  overflow-x: hidden;
+}
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ESQUERDA */
+.auth-left {
+  flex: 1;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: white;
+  padding: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-logo {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 40px;
+}
+
+.auth-left h1 {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 15px;
+}
+
+.auth-left p {
+  font-size: 15px;
+  opacity: 0.9;
+  margin-bottom: 40px;
+  max-width: 420px;
+}
+
+.auth-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.auth-card-stat {
+  background: rgba(255,255,255,0.1);
+  padding: 18px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+/* DIREITA */
+.auth-right {
+  flex: 1;
+  background: #f8fafc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* CARD */
+.auth-box {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.auth-box h2 {
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.auth-box p {
+  font-size: 14px;
+  text-align: center;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+/* TOGGLE */
+.auth-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.auth-toggle button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.auth-toggle .active {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-weight: 600;
+}
+
+/* INPUT */
+.auth-input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.auth-input-group input,
+.auth-input-group select {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+}
+
+.auth-input-group svg {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  margin-right: 8px;
+}
+
+/* LINK */
+.auth-link {
+  text-align: right;
+  font-size: 12px;
+  color: #2563eb;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+/* BOTÃO */
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* GRID CADASTRO */
+.auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.auth-grid.full {
+  grid-template-columns: 1fr;
+}
+.auth-input-group {
+  width: 100%;
+  max-width: 100%;
+}
+
+.auth-input-group input,
+.auth-input-group select {
+  width: 100%;
+  min-width: 0;
+}
+.auth-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 👈 ISSO RESOLVE */
+  font-size: 13px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+/* RESPONSIVO */
+@media (max-width: 900px) {
+  .auth-container {
+    flex-direction: column;
+  }
+
+  .auth-left {
+    padding: 40px;
+    text-align: center;
+  }
+
+  .auth-stats {
+    justify-content: center;
+  }
+  @media (max-width: 600px) {
+  .auth-grid {
+    grid-template-columns: 1fr;
+  }
+}
+}
