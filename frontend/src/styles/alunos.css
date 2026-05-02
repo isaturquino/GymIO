@@ -1,0 +1,537 @@
+.container {
+  padding: 30px;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-container {
+  display: flex;
+}
+
+.gst-aln {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* TEXTOS */
+.titulo {
+  font-size: 32px;
+  color: #1e293b;
+  margin-bottom: 5px;
+}
+
+.subtitulo {
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+/* BOTÕES */
+.botao-cadastrar {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 25px;
+  transition: 0.2s;
+}
+
+.botao-cadastrar:hover {
+  background-color: #1d4ed8;
+}
+
+.botao-filtrar {
+  padding: 10px 16px;
+  border: none;
+  background-color: #475569;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.botao-filtrar:hover {
+  background-color: #334155;
+}
+
+/* LINHA */
+.linha {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px solid #cbd5e1;
+}
+
+/* BUSCA */
+.acoes {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-busca {
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+/* ===================== */
+/* CARDS */
+/* ===================== */
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease; /* Transição suave para todas as propriedades */
+  cursor: pointer;
+}
+
+/* --- Efeito de Aumento Geral --- */
+.card:hover {
+  transform: scale(1.04); /* Aumenta levemente o card */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12); /* Sombra mais profunda ao flutuar */
+}
+
+/* --- Cores Suaves no Hover (Baseadas na classe do ícone) --- */
+
+/* Se o card contém um ícone azul, o fundo do card muda para azul suave no hover */
+.card:has(.blue):hover {
+  background-color: #e3efff; 
+}
+
+/* Se o card contém um ícone verde... */
+.card:has(.green):hover {
+  background-color: #ddffe8;
+}
+
+.card:has(.yellow):hover {
+  background-color: #fff9e1;
+}
+
+
+.card:has(.red):hover {
+  background-color: #fae6e6;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card h3 {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.card p {
+  font-size: 26px;
+  font-weight: bold;
+  color: #0f172a;
+  margin-top: 10px;
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blue { background: #bfdbff; color: #2563eb; }
+.green { background: #beffd5; color: #16a34a; }
+.yellow { background: #fef6c7; color: #ca8a04; }
+.red { background: #ffcece; color: #dc2626; }
+
+/* ===================== */
+/* TABELA */
+/* ===================== */
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.tabela th {
+  background-color: #e2e8f0;
+  color: #334155;
+  padding: 14px;
+  text-align: left;
+}
+
+.tabela td {
+  padding: 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tabela tr:hover {
+  background-color: #f8fafc;
+}
+
+/* ===================== */
+/* STATUS E PLANO DINÂMICOS */
+/* ===================== */
+
+.status,
+.plano {
+
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+/* STATUS */
+.status.ativo {
+  background: #dcfce7;
+  color: #166534;
+  cursor: pointer;
+}
+
+.status.inadimplente {
+  background: #fef3c7;
+  color: #92400e;
+  cursor: pointer;
+
+}
+
+.status.cancelado {
+  background: #fee2e2;
+  color: #991b1b;
+  cursor: pointer;
+}
+
+/* PLANOS */
+.plano.mensal {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.plano.trimestral {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.plano.anual {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ===================== */
+/* RESPONSIVO */
+/* ===================== */
+
+@media (max-width: 900px) {
+  .cards-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .cards-container {
+    grid-template-columns: 1fr;
+  }
+
+  .gst-aln {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal h2 {
+  margin-bottom: 10px;
+}
+
+.modal input,
+.modal select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.modal-botoes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.modal-botoes button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-botoes button:first-child {
+  background: #22c55e;
+  color: white;
+}
+
+.modal-botoes .cancelar {
+  background: #ef4444;
+  color: white;
+}
+
+/* OVERLAY */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* MODAL */
+.modal {
+  background: #ffffff;
+  width: 420px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: aparecer 0.25s ease;
+}
+
+/* HEADER */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.fechar {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+/* BODY */
+.modal-body {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-group label {
+  font-size: 13px;
+  color: #475569;
+}
+
+.input-group input,
+.input-group select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  outline: none;
+  transition: 0.2s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* FOOTER */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* BOTÕES */
+
+.btn.salvar {
+  background: #2563eb;
+  color: white;
+}
+
+/* HOVER */
+.btn.salvar:hover {
+  background: #1d4ed8;
+}
+
+.btn.cancelar:hover {
+  background: #e2e8f0;
+}
+
+/* ANIMAÇÃO */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+}
+
+.filtros button {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #e5e7eb;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.filtros button:hover {
+  background: #d1d5db;
+}
+
+.filtros button.ativo {
+  background: #2563eb;
+  color: white;
+}
+
+.status {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.status:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
+}
+
+.status:active {
+  transform: scale(0.95);
+}
+
+.box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.glow {
+  position: relative;
+  background: #2563eb;
+  color: white;
+}
+
+.glow::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #3b82f6, #60a5fa, #3b82f6);
+  filter: blur(10px);
+  opacity: 0.7;
+  z-index: -1;
+  animation: glow 2s infinite linear;
+}
+
+@keyframes glow {
+  0%,100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.btn-acoes {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.btn-editar {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: 0.2s;
+}
+
+.btn-editar:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
