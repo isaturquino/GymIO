@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../layout/Sidebar";
 import "../styles/alunos.css";
 import { Users, UserCheck, AlertCircle, UserX } from "lucide-react";
