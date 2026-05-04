@@ -1,15 +1,26 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
+import React, { useState } from "react";
 import Sidebar from "../layout/Sidebar";
 import "../styles/alunos.css";
 import { Users, UserCheck, AlertCircle, UserX } from "lucide-react";
-import axios from "axios";
 
 export default function Alunos() {
-  const API = "http://localhost:3003/alunos";
+  const [alunos, setAlunos] = useState([
+    {
+      nome: "João",
+      cpf: "000.000.000-00",
+      telefone: "(43) 99999-0000",
+      plano: "Mensal",
+      status: "ativo",
+    },
+    {
+      nome: "Maria",
+      cpf: "111.111.111-11",
+      telefone: "(43) 98888-1111",
+      plano: "Trimestral",
+      status: "inadimplente",
+    },
+  ]);
 
-  const [alunos, setAlunos] = useState([]);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
 
@@ -22,30 +33,11 @@ export default function Alunos() {
     plano: "",
   });
 
-  // MODAL EDIÇÃO
+  // 🔥 MODAL EDIÇÃO (NOVO)
   const [mostrarModalEdicao, setMostrarModalEdicao] = useState(false);
   const [alunoEditando, setAlunoEditando] = useState(null);
   const [indexEditando, setIndexEditando] = useState(null);
 
-  // =========================
-  // 🔥 BUSCAR DO BACKEND
-  // =========================
-  const fetchAlunos = async () => {
-    try {
-      const res = await axios.get(API);
-      setAlunos(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchAlunos();
-  }, []);
-
-  // =========================
-  // MODAIS
-  // =========================
   const abrirModal = () => setMostrarModal(true);
 
   const fecharModal = () => {
@@ -53,8 +45,9 @@ export default function Alunos() {
     setNovoAluno({ nome: "", cpf: "", telefone: "", plano: "" });
   };
 
-  const abrirModalEdicao = (aluno, index) => {
-    setAlunoEditando({ ...aluno });
+  // 🔥 ABRIR MODAL DE EDIÇÃO
+  const abrirModalEdicao = (index) => {
+    setAlunoEditando({ ...alunos[index] });
     setIndexEditando(index);
     setMostrarModalEdicao(true);
   };
@@ -65,9 +58,7 @@ export default function Alunos() {
     setIndexEditando(null);
   };
 
-  // =========================
   // FORMATADORES
-  // =========================
   const formatarCPF = (valor) => {
     return valor
       .replace(/\D/g, "")
@@ -85,88 +76,49 @@ export default function Alunos() {
       .slice(0, 15);
   };
 
-  // =========================
-  // 🔥 CREATE
-  // =========================
-  const salvarAluno = async () => {
+  const salvarAluno = () => {
     const { nome, cpf, telefone, plano } = novoAluno;
 
     if (!nome || !cpf || !telefone || !plano) return;
 
-    try {
-      await axios.post(API, {
-        nome,
-        cpf,
-        telefone,
-        plano,
-        status: "ativo",
-      });
+    const novo = {
+      nome,
+      cpf,
+      telefone,
+      plano,
+      status: "ativo",
+    };
 
-      fetchAlunos();
-      fecharModal();
-    } catch (error) {
-      console.error(error);
-    }
+    setAlunos([...alunos, novo]);
+    fecharModal();
   };
 
-  // =========================
-  // 🔥 UPDATE
-  // =========================
-  const salvarEdicao = async () => {
-    try {
-      await axios.put(
-        `${API}/${alunoEditando.id}`,
-        alunoEditando
-      );
-
-      fetchAlunos();
-      fecharModalEdicao();
-    } catch (error) {
-      console.error(error);
-    }
+  // 🔥 SALVAR EDIÇÃO
+  const salvarEdicao = () => {
+    const lista = [...alunos];
+    lista[indexEditando] = alunoEditando;
+    setAlunos(lista);
+    fecharModalEdicao();
   };
 
-  // =========================
-  // 🔥 DELETE
-  // =========================
-  const deletarAluno = async (id) => {
-    try {
-      await axios.delete(`${API}/${id}`);
-      fetchAlunos();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // ALTERAR STATUS COM CLIQUE
+  const alterarStatus = (index) => {
+    const lista = [...alunos];
 
-  // =========================
-  // 🔥 ALTERAR STATUS
-  // =========================
-  const alterarStatus = async (aluno) => {
     const ordem = ["ativo", "inadimplente", "cancelado"];
-    const atual = aluno.status;
+    const atual = lista[index].status;
 
-    const proximo =
-      ordem[(ordem.indexOf(atual) + 1) % ordem.length];
+    const proximoIndex = (ordem.indexOf(atual) + 1) % ordem.length;
+    lista[index].status = ordem[proximoIndex];
 
-    try {
-      await axios.put(`${API}/${aluno.id}`, {
-        ...aluno,
-        status: proximo,
-      });
-
-      fetchAlunos();
-    } catch (error) {
-      console.error(error);
-    }
+    setAlunos(lista);
   };
 
-  // =========================
-  // FILTRO
-  // =========================
+  // FILTRO COMPLETO
   const alunosFiltrados = alunos.filter((a) => {
     const matchBusca =
       a.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      (a.cpf && a.cpf.includes(busca));
+      a.cpf.includes(busca);
 
     const matchStatus =
       filtroStatus === "todos" || a.status === filtroStatus;
@@ -174,9 +126,7 @@ export default function Alunos() {
     return matchBusca && matchStatus;
   });
 
-  // =========================
   // MÉTRICAS
-  // =========================
   const total = alunos.length;
   const ativos = alunos.filter((a) => a.status === "ativo").length;
   const inadimplentes = alunos.filter(
@@ -272,19 +222,19 @@ export default function Alunos() {
               <th>Telefone</th>
               <th>Plano</th>
               <th>Status</th>
-              <th>Ações</th>
+              <th>Ações</th> {/* NOVO */}
             </tr>
           </thead>
 
           <tbody>
             {alunosFiltrados.map((aluno, index) => (
-              <tr key={aluno.id}>
+              <tr key={index}>
                 <td>{aluno.nome}</td>
                 <td>{aluno.cpf}</td>
                 <td>{aluno.telefone}</td>
 
                 <td>
-                  <span className={`plano ${aluno.plano?.toLowerCase()}`}>
+                  <span className={`plano ${aluno.plano.toLowerCase()}`}>
                     {aluno.plano}
                   </span>
                 </td>
@@ -292,7 +242,7 @@ export default function Alunos() {
                 <td>
                   <span
                     className={`status ${aluno.status}`}
-                    onClick={() => alterarStatus(aluno)}
+                    onClick={() => alterarStatus(index)}
                   >
                     {aluno.status}
                   </span>
@@ -301,16 +251,9 @@ export default function Alunos() {
                 <td>
                   <button
                     className="btn-acoes"
-                    onClick={() => abrirModalEdicao(aluno, index)}
+                    onClick={() => abrirModalEdicao(index)}
                   >
-                    Editar
-                  </button>
-
-                  <button
-                    className="btn-acoes"
-                    onClick={() => deletarAluno(aluno.id)}
-                  >
-                    Deletar
+                    ...
                   </button>
                 </td>
               </tr>
@@ -347,7 +290,7 @@ export default function Alunos() {
         </div>
       )}
 
-      {/* MODAL EDIÇÃO */}
+      {/* 🔥 MODAL EDIÇÃO */}
       {mostrarModalEdicao && alunoEditando && (
         <div className="modal-overlay">
           <div className="modal">
