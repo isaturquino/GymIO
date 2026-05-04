@@ -495,7 +495,6 @@ export default function Alunos() {
                 />
               </div>
 
-              {/* Plano carregado do banco */}
               <div className="input-group">
                 <label>Plano *</label>
                 <select
