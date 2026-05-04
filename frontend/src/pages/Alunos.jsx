@@ -28,101 +28,102 @@ const alunoInicial = {
   email: "",
   dataNascimento: "",
   endereco: "",
-  plano: "",
+  plano_id: "",
   status: "Ativo",
   matricula: "",
   senha: "",
 };
 
 export default function Alunos() {
-  const [stats] = useState({
-    total: 248,
-    novosMes: 18,
-    cancelamentos: 3,
-    crescimento: 12,
+  const [alunos, setAlunos] = useState([]);
+  const [planos, setPlanos] = useState([]);
+  const [busca, setBusca] = useState("");
+  const [stats, setStats] = useState({
+    total: 0,
+    novosMes: 0,
+    cancelamentos: 0,
+    crescimento: 0,
   });
 
-  const [alunos, setAlunos] = useState([]);
-
-  const [busca, setBusca] = useState("");
   useEffect(() => {
-  fetch("http://localhost:3002/api/pessoas?tipo=aluno")
-    .then(res => res.json())
-    .then(data => {
-      console.log("RESPOSTA BACKEND:", data);
+    async function carregarDados() {
+      try {
+        const [alunosRes, totalRes, planosRes] = await Promise.all([
+          fetch("http://localhost:3002/api/pessoas?tipo=aluno"),
+          fetch("http://localhost:3002/api/pessoas/total-alunos"),
+          fetch("http://localhost:3002/api/pessoas/planos"),
+        ]);
 
-      // garante que sempre será array
-      if (Array.isArray(data)) {
-        setAlunos(data);
-      } else {
-        console.error("Backend não retornou array");
+        const alunosData = await alunosRes.json();
+        const totalData = await totalRes.json();
+        const planosData = await planosRes.json();
+
+        setAlunos(Array.isArray(alunosData) ? alunosData : []);
+        setPlanos(Array.isArray(planosData) ? planosData : []);
+        setStats((prev) => ({
+          ...prev,
+          total: totalData.totalAlunos || 0,
+        }));
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
         setAlunos([]);
       }
-    })
-    .catch(err => {
-      console.error("Erro ao buscar alunos:", err);
-      setAlunos([]);
-    });
-}, []);
-  const [filtroStatus, setFiltroStatus] = useState("Todos");
+    }
 
+    carregarDados();
+  }, []);
+
+  const [filtroStatus, setFiltroStatus] = useState("Todos");
   const [modalAdicionarAberto, setModalAdicionarAberto] = useState(false);
   const [novoAluno, setNovoAluno] = useState(alunoInicial);
-
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [alunoEditando, setAlunoEditando] = useState(null);
   const [senhaVisivelId, setSenhaVisivelId] = useState(null);
-
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [alunoExcluindo, setAlunoExcluindo] = useState(null);
 
   const alunosFiltrados = useMemo(() => {
     return alunos.filter((aluno) => {
       const termo = busca.toLowerCase();
-
       const correspondeBusca =
-  (aluno.nome || "").toLowerCase().includes(termo) ||
-  (aluno.cpf || "").includes(busca) ||
-  (aluno.email || "").toLowerCase().includes(termo);
-
+        (aluno.nome || "").toLowerCase().includes(termo) ||
+        (aluno.cpf || "").includes(busca) ||
+        (aluno.email || "").toLowerCase().includes(termo);
       const correspondeStatus =
         filtroStatus === "Todos" || aluno.status === filtroStatus;
-
       return correspondeBusca && correspondeStatus;
     });
   }, [alunos, busca, filtroStatus]);
 
-  async function salvarNovoAluno() {
-  console.log("CLIQUEI EM SALVAR", novoAluno);
-
-  try {
-    const res = await fetch("http://localhost:3002/api/pessoas", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(novoAluno),
-});
-
-const data = await res.json();
-
-console.log("STATUS:", res.status);
-console.log("RESPOSTA BACKEND:", data);
-
-if (!res.ok) {
-  alert("Erro ao salvar");
-  return;
-}
-
-    setAlunos((prev) => [...prev, data]);
-
-    setNovoAluno(alunoInicial);
-    setModalAdicionarAberto(false);
-  } catch (err) {
-    console.error("ERRO NO FETCH:", err);
-    alert("Erro de conexão com o servidor");
+  async function recarregarAlunos() {
+    const res = await fetch("http://localhost:3002/api/pessoas?tipo=aluno");
+    const data = await res.json();
+    setAlunos(Array.isArray(data) ? data : []);
   }
-}
+
+  async function salvarNovoAluno() {
+    try {
+      const res = await fetch("http://localhost:3002/api/pessoas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(novoAluno),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert("Erro ao salvar");
+        return;
+      }
+
+      await recarregarAlunos();
+      setNovoAluno(alunoInicial);
+      setModalAdicionarAberto(false);
+    } catch (err) {
+      console.error("ERRO NO FETCH:", err);
+      alert("Erro de conexão com o servidor");
+    }
+  }
 
   function abrirEdicao(aluno) {
     setAlunoEditando({ ...aluno });
@@ -130,33 +131,36 @@ if (!res.ok) {
   }
 
   async function salvarEdicao() {
-  if (!alunoEditando) return;
+    if (!alunoEditando) return;
 
-  const res = await fetch(`${API}/${alunoEditando.id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(alunoEditando),
-  });
+    const res = await fetch(`${API}/${alunoEditando.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: alunoEditando.nome,
+        cpf: alunoEditando.cpf,
+        telefone: alunoEditando.telefone,
+        email: alunoEditando.email,
+        dataNascimento: alunoEditando.dataNascimento || alunoEditando.data_nascimento,
+        endereco: alunoEditando.endereco,
+        status: alunoEditando.status,
+        plano_id: alunoEditando.plano_id,
+        senha: alunoEditando.senha,
+      }),
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    console.error(data);
-    alert("Erro ao editar");
-    return;
+    if (!res.ok) {
+      console.error(data);
+      alert("Erro ao editar");
+      return;
+    }
+
+    await recarregarAlunos();
+    setModalEditarAberto(false);
+    setAlunoEditando(null);
   }
-
-  setAlunos((lista) =>
-    lista.map((a) =>
-      a.id === alunoEditando.id ? alunoEditando : a
-    )
-  );
-
-  setModalEditarAberto(false);
-  setAlunoEditando(null);
-}
 
   function abrirExclusao(aluno) {
     setAlunoExcluindo(aluno);
@@ -164,30 +168,23 @@ if (!res.ok) {
   }
 
   async function confirmarExclusao() {
-  if (!alunoExcluindo) return;
+    if (!alunoExcluindo) return;
 
-  await fetch(`${API}/${alunoExcluindo.id}`, {
-    method: "DELETE",
-  });
+    await fetch(`${API}/${alunoExcluindo.id}`, { method: "DELETE" });
 
-  setAlunos((lista) =>
-    lista.filter((a) => a.id !== alunoExcluindo.id)
-  );
-
-  setModalExcluirAberto(false);
-  setAlunoExcluindo(null);
-}
+    setAlunos((lista) => lista.filter((a) => a.id !== alunoExcluindo.id));
+    setModalExcluirAberto(false);
+    setAlunoExcluindo(null);
+  }
 
   function formatarData(data) {
     if (!data) return "-";
-
     if (data.includes("/")) return data;
-
     const [ano, mes, dia] = data.split("-");
     return `${dia}/${mes}/${ano}`;
   }
 
-  function iniciais(nome) {
+  function iniciais(nome = "") {
     return nome
       .split(" ")
       .map((parte) => parte[0])
@@ -221,7 +218,6 @@ if (!res.ok) {
             <div className="stat-icon stat-blue">
               <Users size={22} />
             </div>
-
             <div>
               <span>Total de Alunos</span>
               <strong>{stats.total}</strong>
@@ -232,7 +228,6 @@ if (!res.ok) {
             <div className="stat-icon stat-green">
               <TrendingUp size={22} />
             </div>
-
             <div>
               <span>Novos este mês</span>
               <strong>{stats.novosMes}</strong>
@@ -244,7 +239,6 @@ if (!res.ok) {
             <div className="stat-icon stat-red">
               <CircleX size={22} />
             </div>
-
             <div>
               <span>Cancelamentos</span>
               <strong>{stats.cancelamentos}</strong>
@@ -256,7 +250,6 @@ if (!res.ok) {
             <div className="stat-icon stat-green">
               <TrendingUp size={22} />
             </div>
-
             <div>
               <span>Taxa de Crescimento</span>
               <strong>+{stats.crescimento}%</strong>
@@ -341,40 +334,34 @@ if (!res.ok) {
                     <td>{aluno.cpf}</td>
                     <td>{aluno.telefone}</td>
                     <td>{aluno.email}</td>
-                    <td>{formatarData(aluno.dataNascimento)}</td>
+                    <td>{formatarData(aluno.dataNascimento || aluno.data_nascimento)}</td>
                     <td className="address-cell">{aluno.endereco}</td>
 
                     <td>
-                      <span
-                         className={`badge plano-${(aluno.plano || "").toLowerCase()}`}
-                      >
-                      {aluno.plano || "-"}
-                     </span>
-                    </td>
-
-                    <td>
-                      <span
-                        className={`badge status-${(aluno.status || "").toLowerCase()}`}
-                      >
-                      {aluno.status || "-"}
+                      <span className={`badge plano-${(aluno.plano || "").toLowerCase()}`}>
+                        {aluno.plano || "-"}
                       </span>
                     </td>
 
-                    <td>{aluno.matricula}</td>
+                    <td>
+                      <span className={`badge status-${(aluno.status || "").toLowerCase()}`}>
+                        {aluno.status || "-"}
+                      </span>
+                    </td>
+
+                    <td>{formatarData(aluno.data_matricula)}</td>
 
                     <td>
                       <div className="password-cell">
                         <span>
-                          {senhaVisivelId === aluno.id
-                            ? aluno.senha
-                            : "••••••••"}
+                          {senhaVisivelId === aluno.id ? aluno.senha || "" : "••••••••"}
                         </span>
 
                         <button
                           className="btn-eye"
                           onClick={() =>
                             setSenhaVisivelId(
-                              senhaVisivelId === aluno.id ? null : aluno.id,
+                              senhaVisivelId === aluno.id ? null : aluno.id
                             )
                           }
                         >
@@ -420,6 +407,7 @@ if (!res.ok) {
           textoBotao="Salvar"
           mostrarPlano={true}
           mostrarCargo={false}
+          planos={planos}
         />
       )}
 
@@ -446,10 +434,7 @@ if (!res.ok) {
                 <input
                   value={alunoEditando.nome || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      nome: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, nome: e.target.value })
                   }
                 />
               </div>
@@ -457,12 +442,9 @@ if (!res.ok) {
               <div className="input-group">
                 <label>CPF *</label>
                 <input
-                  value={alunoEditando.cpf}
+                  value={alunoEditando.cpf || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      cpf: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, cpf: e.target.value })
                   }
                 />
               </div>
@@ -471,12 +453,9 @@ if (!res.ok) {
                 <label>E-mail *</label>
                 <input
                   type="email"
-                  value={alunoEditando.email}
+                  value={alunoEditando.email || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      email: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, email: e.target.value })
                   }
                 />
               </div>
@@ -484,12 +463,9 @@ if (!res.ok) {
               <div className="input-group">
                 <label>Telefone *</label>
                 <input
-                  value={alunoEditando.telefone}
+                  value={alunoEditando.telefone || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      telefone: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, telefone: e.target.value })
                   }
                 />
               </div>
@@ -498,12 +474,13 @@ if (!res.ok) {
                 <label>Data de nascimento *</label>
                 <input
                   type="date"
-                  value={alunoEditando.dataNascimento}
+                  value={
+                    alunoEditando.dataNascimento ||
+                    alunoEditando.data_nascimento ||
+                    ""
+                  }
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      dataNascimento: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, dataNascimento: e.target.value })
                   }
                 />
               </div>
@@ -511,42 +488,37 @@ if (!res.ok) {
               <div className="input-group">
                 <label>Endereço *</label>
                 <input
-                  value={alunoEditando.endereco}
+                  value={alunoEditando.endereco || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      endereco: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, endereco: e.target.value })
                   }
                 />
               </div>
 
+              {/* Plano carregado do banco */}
               <div className="input-group">
                 <label>Plano *</label>
                 <select
-                  value={alunoEditando.plano}
+                  value={alunoEditando.plano_id || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      plano: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, plano_id: e.target.value })
                   }
                 >
-                  <option value="Mensal">Mensal</option>
-                  <option value="Trimestral">Trimestral</option>
-                  <option value="Anual">Anual</option>
+                  <option value="">Selecione um plano</option>
+                  {planos.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nome_plano}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="input-group">
                 <label>Status *</label>
                 <select
-                  value={alunoEditando.status}
+                  value={alunoEditando.status || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      status: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, status: e.target.value })
                   }
                 >
                   <option value="Ativo">Ativo</option>
@@ -559,12 +531,9 @@ if (!res.ok) {
                 <label>Senha</label>
                 <input
                   type="password"
-                  value={alunoEditando.senha}
+                  value={alunoEditando.senha || ""}
                   onChange={(e) =>
-                    setAlunoEditando({
-                      ...alunoEditando,
-                      senha: e.target.value,
-                    })
+                    setAlunoEditando({ ...alunoEditando, senha: e.target.value })
                   }
                 />
               </div>
@@ -615,15 +584,12 @@ if (!res.ok) {
 
             <div className="delete-info">
               <strong>{alunoExcluindo.nome}</strong>
-
               <div>
                 <span>CPF: {alunoExcluindo.cpf}</span>
-                <span>Plano: {alunoExcluindo.plano}</span>
-                <span>Status: {alunoExcluindo.status}</span>
+                <span>Plano: {alunoExcluindo.plano || "-"}</span>
+                <span>Status: {alunoExcluindo.status || "-"}</span>
                 <span>Matrícula: {alunoExcluindo.matricula}</span>
-                <span>
-                  Nascimento: {formatarData(alunoExcluindo.dataNascimento)}
-                </span>
+                <span>Nascimento: {formatarData(alunoExcluindo.dataNascimento)}</span>
                 <span>E-mail: {alunoExcluindo.email}</span>
                 <span>Telefone: {alunoExcluindo.telefone}</span>
                 <span>Endereço: {alunoExcluindo.endereco}</span>
