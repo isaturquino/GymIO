@@ -35,3 +35,13 @@ O sistema gera relatórios de alunos ativos e inativos, inadimplência, receita 
 ### Dashboard
 
 Apresenta indicadores resumidos, como total de alunos ativos, receita mensal, quantidade de alunos inadimplentes e número de acessos no dia.
+
+## Tecnologias Utilizadas
+
+As tecnologias adotadas no desenvolvimento do projeto foram escolhidas com base nos conhecimentos prévios da equipe, com o objetivo de otimizar o tempo de desenvolvimento e garantir maior produtividade, evitando a necessidade de aprendizado de novas ferramentas durante a execução do projeto.
+No back-end, foi utilizado o Node.js, permitindo a construção de uma API eficiente e alinhada com o ecossistema JavaScript já dominado pelo grupo.
+No front-end, foram empregadas as tecnologias HTML, CSS e JavaScript, com o uso da biblioteca React, possibilitando a criação de interfaces dinâmicas e organizadas em componentes reutilizáveis.
+Para o banco de dados, foi adotado o Supabase, que oferece uma solução prática e moderna, facilitando a integração com o sistema.
+O controle de versão foi realizado por meio do GitHub, permitindo a colaboração entre os membros da equipe, organização das tarefas e acompanhamento do progresso do projeto.
+Além disso, foram utilizadas bibliotecas auxiliares como o lucide-react, para a implementação de ícones na interface, e o react-router-dom, responsável pelo gerenciamento das rotas da aplicação.
+A escolha dessas tecnologias contribuiu diretamente para a eficiência do desenvolvimento, permitindo que a equipe focasse na implementação das funcionalidades e na qualidade do sistema, em vez de investir tempo na aprendizagem de novas ferramentas.
