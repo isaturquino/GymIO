@@ -1,0 +1,151 @@
+/* =========================================================
+   MODAL CADASTRO PESSOA
+   ========================================================= */
+
+/* OVERLAY */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 99999; /* MUITO IMPORTANTE */
+}
+
+/* CONTAINER */
+.modal {
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-xl);
+  width: 580px;
+  max-width: calc(100% - 32px);
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: modalFade 0.2s ease;
+}
+
+/* HEADER */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: var(--transition);
+}
+
+.modal-close:hover {
+  background: var(--gray-100);
+  color: var(--color-text-primary);
+}
+
+/* GRID FORM */
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 16px;
+  margin-top: 18px;
+}
+
+/* INPUT GROUP */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-group label {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-primary);
+}
+
+/* INPUTS */
+.input-group input,
+.input-group select {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  outline: none;
+  transition: var(--transition);
+  background: #fff;
+}
+
+.input-group input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* FOCUS */
+.input-group input:focus,
+.input-group select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* INPUT FULL */
+.input-full {
+  grid-column: span 2;
+}
+
+/* FOOTER */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* =========================================================
+   ANIMAÇÃO
+   ========================================================= */
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   RESPONSIVO
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .modal {
+    padding: 16px;
+  }
+
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .input-full {
+    grid-column: span 1;
+  }
+}
