@@ -20,10 +20,14 @@ const createPessoa = async (req, res) => {
   try {
     const body = req.body;
 
-    console.log("BODY RECEBIDO:", body);
-
-    // 🔥 validação simples (evita 500 silencioso)
-    const camposObrigatorios = ["nome", "cpf", "rg", "telefone", "endereco", "data_nascimento"];
+    const camposObrigatorios = [
+      "nome",
+      "cpf",
+      "rg",
+      "telefone",
+      "endereco",
+      "data_nascimento",
+    ];
 
     for (let campo of camposObrigatorios) {
       if (!body[campo]) {
@@ -33,11 +37,13 @@ const createPessoa = async (req, res) => {
       }
     }
 
-    // 🔥 corrigir data
     let data_nascimento = body.data_nascimento.replace(/\D/g, "");
 
     if (data_nascimento.length === 8) {
-      data_nascimento = `${data_nascimento.slice(4)}-${data_nascimento.slice(2, 4)}-${data_nascimento.slice(0, 2)}`;
+      data_nascimento = `${data_nascimento.slice(4)}-${data_nascimento.slice(
+        2,
+        4
+      )}-${data_nascimento.slice(0, 2)}`;
     }
 
     const { data, error } = await supabase
@@ -60,7 +66,6 @@ const createPessoa = async (req, res) => {
     }
 
     return res.json(data);
-
   } catch (err) {
     console.log("🔥 ERRO GERAL:", err);
     return res.status(500).json(err);

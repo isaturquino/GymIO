@@ -8,11 +8,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ======================
+// ROTAS
+// ======================
 const pessoaRoutes = require("./routes/pessoa.routes");
+const alunoRoutes = require("./routes/alunoRoutes");
 
 app.use("/pessoas", pessoaRoutes);
+app.use("/alunos", alunoRoutes);
 
-const PORT = process.env.PORT || 3004;
+// ======================
+// ROTA TESTE
+// ======================
+app.get("/", (req, res) => {
+  res.json({ message: "API GymIO rodando" });
+});
+
+// ======================
+// SERVER
+// ======================
+const PORT = process.env.PORT || 3003;
 
 app.listen(PORT, () => {
   console.log("Servidor rodando na porta", PORT);
