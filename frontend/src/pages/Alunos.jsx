@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../layout/Sidebar";
 import ModalCadastroPessoa from "../components/ModalCadastroPessoa";
@@ -18,6 +18,8 @@ import {
   X,
   AlertTriangle,
 } from "lucide-react";
+
+const API = "http://localhost:3002/api/pessoas";
 
 const alunoInicial = {
   nome: "",
@@ -40,75 +42,28 @@ export default function Alunos() {
     crescimento: 12,
   });
 
-  const [alunos, setAlunos] = useState([
-    {
-      id: 1,
-      nome: "Maria Silva",
-      cpf: "123.456.789-00",
-      telefone: "(11) 99999-1111",
-      email: "maria@email.com",
-      dataNascimento: "1990-04-15",
-      endereco: "Rua das Flores, 123 São Paulo - SP",
-      plano: "Mensal",
-      status: "Ativo",
-      matricula: "15/02/2024",
-      senha: "123456",
-    },
-    {
-      id: 2,
-      nome: "João Santos",
-      cpf: "234.567.890-11",
-      telefone: "(11) 99999-2222",
-      email: "joao@email.com",
-      dataNascimento: "1988-07-22",
-      endereco: "Av. Brasil, 456 São Paulo - SP",
-      plano: "Trimestral",
-      status: "Ativo",
-      matricula: "10/01/2024",
-      senha: "123456",
-    },
-    {
-      id: 3,
-      nome: "Ana Costa",
-      cpf: "345.678.901-22",
-      telefone: "(11) 99999-3333",
-      email: "ana@email.com",
-      dataNascimento: "1992-03-30",
-      endereco: "Rua Augusta, 789 São Paulo - SP",
-      plano: "Anual",
-      status: "Inadimplente",
-      matricula: "20/12/2023",
-      senha: "123456",
-    },
-    {
-      id: 4,
-      nome: "Pedro Lima",
-      cpf: "456.789.012-33",
-      telefone: "(11) 99999-4444",
-      email: "pedro@email.com",
-      dataNascimento: "1987-11-10",
-      endereco: "Rua São João, 321 São Paulo - SP",
-      plano: "Mensal",
-      status: "Cancelado",
-      matricula: "05/11/2023",
-      senha: "123456",
-    },
-    {
-      id: 5,
-      nome: "Carlos Souza",
-      cpf: "567.890.123-44",
-      telefone: "(11) 99999-5555",
-      email: "carlos@email.com",
-      dataNascimento: "1991-06-05",
-      endereco: "Av. Paulista, 1000 São Paulo - SP",
-      plano: "Trimestral",
-      status: "Ativo",
-      matricula: "25/10/2023",
-      senha: "123456",
-    },
-  ]);
+  const [alunos, setAlunos] = useState([]);
 
   const [busca, setBusca] = useState("");
+  useEffect(() => {
+  fetch("http://localhost:3002/api/pessoas?tipo=aluno")
+    .then(res => res.json())
+    .then(data => {
+      console.log("RESPOSTA BACKEND:", data);
+
+      // garante que sempre será array
+      if (Array.isArray(data)) {
+        setAlunos(data);
+      } else {
+        console.error("Backend não retornou array");
+        setAlunos([]);
+      }
+    })
+    .catch(err => {
+      console.error("Erro ao buscar alunos:", err);
+      setAlunos([]);
+    });
+}, []);
   const [filtroStatus, setFiltroStatus] = useState("Todos");
 
   const [modalAdicionarAberto, setModalAdicionarAberto] = useState(false);
@@ -126,9 +81,9 @@ export default function Alunos() {
       const termo = busca.toLowerCase();
 
       const correspondeBusca =
-        aluno.nome.toLowerCase().includes(termo) ||
-        aluno.cpf.includes(busca) ||
-        aluno.email.toLowerCase().includes(termo);
+  (aluno.nome || "").toLowerCase().includes(termo) ||
+  (aluno.cpf || "").includes(busca) ||
+  (aluno.email || "").toLowerCase().includes(termo);
 
       const correspondeStatus =
         filtroStatus === "Todos" || aluno.status === filtroStatus;
@@ -137,65 +92,91 @@ export default function Alunos() {
     });
   }, [alunos, busca, filtroStatus]);
 
-  function salvarNovoAluno() {
-    if (
-      !novoAluno.nome ||
-      !novoAluno.cpf ||
-      !novoAluno.telefone ||
-      !novoAluno.email ||
-      !novoAluno.dataNascimento ||
-      !novoAluno.endereco ||
-      !novoAluno.plano ||
-      !novoAluno.senha
-    ) {
-      alert("Preencha todos os campos obrigatórios.");
-      return;
-    }
+  async function salvarNovoAluno() {
+  console.log("CLIQUEI EM SALVAR", novoAluno);
 
-    const aluno = {
-      ...novoAluno,
-      id: Date.now(),
-      matricula: new Date().toLocaleDateString("pt-BR"),
-    };
+  try {
+    const res = await fetch("http://localhost:3002/api/pessoas", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(novoAluno),
+});
 
-    setAlunos((listaAtual) => [...listaAtual, aluno]);
+const data = await res.json();
+
+console.log("STATUS:", res.status);
+console.log("RESPOSTA BACKEND:", data);
+
+if (!res.ok) {
+  alert("Erro ao salvar");
+  return;
+}
+
+    setAlunos((prev) => [...prev, data]);
+
     setNovoAluno(alunoInicial);
     setModalAdicionarAberto(false);
+  } catch (err) {
+    console.error("ERRO NO FETCH:", err);
+    alert("Erro de conexão com o servidor");
   }
+}
 
   function abrirEdicao(aluno) {
     setAlunoEditando({ ...aluno });
     setModalEditarAberto(true);
   }
 
-  function salvarEdicao() {
-    if (!alunoEditando) return;
+  async function salvarEdicao() {
+  if (!alunoEditando) return;
 
-    setAlunos((listaAtual) =>
-      listaAtual.map((aluno) =>
-        aluno.id === alunoEditando.id ? alunoEditando : aluno,
-      ),
-    );
+  const res = await fetch(`${API}/${alunoEditando.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(alunoEditando),
+  });
 
-    setAlunoEditando(null);
-    setModalEditarAberto(false);
+  const data = await res.json();
+
+  if (!res.ok) {
+    console.error(data);
+    alert("Erro ao editar");
+    return;
   }
+
+  setAlunos((lista) =>
+    lista.map((a) =>
+      a.id === alunoEditando.id ? alunoEditando : a
+    )
+  );
+
+  setModalEditarAberto(false);
+  setAlunoEditando(null);
+}
 
   function abrirExclusao(aluno) {
     setAlunoExcluindo(aluno);
     setModalExcluirAberto(true);
   }
 
-  function confirmarExclusao() {
-    if (!alunoExcluindo) return;
+  async function confirmarExclusao() {
+  if (!alunoExcluindo) return;
 
-    setAlunos((listaAtual) =>
-      listaAtual.filter((aluno) => aluno.id !== alunoExcluindo.id),
-    );
+  await fetch(`${API}/${alunoExcluindo.id}`, {
+    method: "DELETE",
+  });
 
-    setAlunoExcluindo(null);
-    setModalExcluirAberto(false);
-  }
+  setAlunos((lista) =>
+    lista.filter((a) => a.id !== alunoExcluindo.id)
+  );
+
+  setModalExcluirAberto(false);
+  setAlunoExcluindo(null);
+}
 
   function formatarData(data) {
     if (!data) return "-";
@@ -365,17 +346,17 @@ export default function Alunos() {
 
                     <td>
                       <span
-                        className={`badge plano-${aluno.plano.toLowerCase()}`}
+                         className={`badge plano-${(aluno.plano || "").toLowerCase()}`}
                       >
-                        {aluno.plano}
-                      </span>
+                      {aluno.plano || "-"}
+                     </span>
                     </td>
 
                     <td>
                       <span
-                        className={`badge status-${aluno.status.toLowerCase()}`}
+                        className={`badge status-${(aluno.status || "").toLowerCase()}`}
                       >
-                        {aluno.status}
+                      {aluno.status || "-"}
                       </span>
                     </td>
 
@@ -463,7 +444,7 @@ export default function Alunos() {
               <div className="input-group">
                 <label>Nome completo *</label>
                 <input
-                  value={alunoEditando.nome}
+                  value={alunoEditando.nome || ""}
                   onChange={(e) =>
                     setAlunoEditando({
                       ...alunoEditando,
