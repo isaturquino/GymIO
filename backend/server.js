@@ -15,6 +15,8 @@ app.use(express.json());
 // ======================
 // ROTAS
 // ======================
+const alunoRoutes = require('./routes/alunoRoutes');
+app.use('/alunos', alunoRoutes);
 import authRoutes from "./routes/auth.routes.js";
 
 app.use("/auth", authRoutes);
