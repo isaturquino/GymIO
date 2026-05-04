@@ -16,22 +16,24 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* Auth */}
-        <Route path="/"         element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         {/* App */}
-        <Route path="/dashboard"    element={<Dashboard />} />
-        <Route path="/alunos"       element={<Alunos />} />
-        <Route path="/planos"       element={<Planos />} />
-        <Route path="/equipe"       element={<Equipe />} />
-        <Route path="/financeiro"   element={<Financeiro />} />
-        <Route path="/acesso"       element={<Acesso />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/alunos" element={<Alunos />} />
+        <Route path="/planos" element={<Planos />} />
+        <Route path="/equipe" element={<Equipe />} />
+        <Route path="/financeiro" element={<Financeiro />} />
+        <Route path="/acesso" element={<Acesso />} />
         <Route path="/equipamentos" element={<Equipamentos />} />
-        <Route path="/relatorios"   element={<Relatorios />} />
+        <Route path="/relatorios" element={<Relatorios />} />
 
-        {/* Fallback */}
+        {/* fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </BrowserRouter>
   );

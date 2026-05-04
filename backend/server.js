@@ -15,13 +15,15 @@ app.use(express.json());
 // ======================
 // ROTAS
 // ======================
+const alunoRoutes = require('./routes/alunoRoutes');
+app.use('/alunos', alunoRoutes);
 import authRoutes from "./routes/auth.routes.js";
 
 app.use("/auth", authRoutes);
 
 // (depois você adiciona outras)
-import alunoRoutes from "./routes/aluno.routes.js";
-app.use("/alunos", alunoRoutes);
+// import alunosRoutes from "./routes/alunos.routes.js";
+// app.use("/alunos", alunosRoutes);
 
 // ======================
 // ROTA TESTE
@@ -33,7 +35,7 @@ app.get("/", (req, res) => {
 // ======================
 // SERVER
 // ======================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3003;
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
