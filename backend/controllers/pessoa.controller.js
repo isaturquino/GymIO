@@ -1,7 +1,7 @@
 const supabase = require("../config/supabase");
 
 // =========================
-// GET - LISTAR ALUNOS
+// GET - LISTAR PESSOAS / ALUNOS
 // =========================
 exports.getPessoas = async (req, res) => {
   try {
@@ -55,6 +55,8 @@ exports.getPessoas = async (req, res) => {
 
           plano: plano.nome || "",
           status: assinatura.status || "",
+          plano_id: assinatura.plano_id || null,
+
           matricula: aluno.matricula || "",
           senha: aluno.senha || "",
         };
@@ -63,19 +65,25 @@ exports.getPessoas = async (req, res) => {
       return res.json(alunos);
     }
 
-    const { data, error } = await supabase.from("pessoa").select("*");
+    const { data, error } = await supabase
+      .from("pessoa")
+      .select("*");
 
-    if (error) return res.status(500).json({ erro: error.message });
+    if (error) {
+      return res.status(500).json({ erro: error.message });
+    }
 
     res.json(data);
+
   } catch (err) {
-    console.error("ERRO GERAL:", err);
+    console.error("ERRO GERAL GET:", err);
     res.status(500).json({ erro: err.message });
   }
 };
 
+
 // =========================
-// POST - CRIAR ALUNO
+// POST - CRIAR ALUNO COMPLETO
 // =========================
 exports.createPessoa = async (req, res) => {
   try {
@@ -95,76 +103,64 @@ exports.createPessoa = async (req, res) => {
     // 1. pessoa
     const { data: pessoa, error: erroPessoa } = await supabase
       .from("pessoa")
-      .insert([
-        {
-          nome,
-          cpf,
-          telefone,
-          email,
-          data_nascimento: dataNascimento,
-          endereco,
-        },
-      ])
+      .insert([{
+        nome,
+        cpf,
+        telefone,
+        email,
+        data_nascimento: dataNascimento,
+        endereco,
+      }])
       .select()
       .single();
 
     if (erroPessoa) {
-      console.error("ERRO PESSOA:", erroPessoa);
       return res.status(500).json({ erro: erroPessoa.message });
     }
 
     // 2. aluno
     const { data: aluno, error: erroAluno } = await supabase
       .from("aluno")
-      .insert([
-        {
-          pessoa_id: pessoa.id,
-          matricula,
-          senha,
-        },
-      ])
+      .insert([{
+        pessoa_id: pessoa.id,
+        matricula,
+        senha,
+      }])
       .select()
       .single();
 
     if (erroAluno) {
-      console.error("ERRO ALUNO:", erroAluno);
       return res.status(500).json({ erro: erroAluno.message });
     }
 
-    // 3. buscar plano
-    const { data: planoData, error: erroPlano } = await supabase
+    // 3. plano
+    const { data: planoData } = await supabase
       .from("plano")
       .select("id")
       .eq("nome", plano)
       .single();
 
-    if (erroPlano) {
-      console.error("ERRO PLANO:", erroPlano);
-      return res.status(500).json({ erro: erroPlano.message });
-    }
-
     // 4. assinatura
-    const { error: erroAssinatura } = await supabase
+    const { error: erroAss } = await supabase
       .from("assinatura")
-      .insert([
-        {
-          aluno_id: aluno.id,
-          plano_id: planoData.id,
-          status,
-        },
-      ]);
+      .insert([{
+        aluno_id: aluno.id,
+        plano_id: planoData?.id || null,
+        status,
+      }]);
 
-    if (erroAssinatura) {
-      console.error("ERRO ASSINATURA:", erroAssinatura);
-      return res.status(500).json({ erro: erroAssinatura.message });
+    if (erroAss) {
+      return res.status(500).json({ erro: erroAss.message });
     }
 
-    res.json([pessoa]);
+    res.json({ sucesso: true });
+
   } catch (err) {
-    console.error("ERRO GERAL POST:", err);
+    console.error("ERRO POST:", err);
     res.status(500).json({ erro: err.message });
   }
 };
+
 
 // =========================
 // PUT - ATUALIZAR
@@ -186,8 +182,7 @@ exports.updatePessoa = async (req, res) => {
       senha,
     } = req.body;
 
-    // pessoa
-    const { error: erroPessoa } = await supabase
+    await supabase
       .from("pessoa")
       .update({
         nome,
@@ -199,84 +194,69 @@ exports.updatePessoa = async (req, res) => {
       })
       .eq("id", id);
 
-    if (erroPessoa) {
-      console.error("ERRO UPDATE PESSOA:", erroPessoa);
-      return res.status(500).json({ erro: erroPessoa.message });
-    }
-
-    // aluno
-    const { data: alunoData } = await supabase
+    const { data: aluno } = await supabase
       .from("aluno")
       .select("id")
       .eq("pessoa_id", id)
       .single();
 
-    if (!alunoData) {
+    if (!aluno) {
       return res.status(404).json({ erro: "Aluno não encontrado" });
     }
 
-    const { error: erroAluno } = await supabase
+    await supabase
       .from("aluno")
       .update({
         matricula,
         senha,
       })
-      .eq("id", alunoData.id);
+      .eq("id", aluno.id);
 
-    if (erroAluno) {
-      console.error("ERRO UPDATE ALUNO:", erroAluno);
-      return res.status(500).json({ erro: erroAluno.message });
-    }
-
-    // plano
     const { data: planoData } = await supabase
       .from("plano")
       .select("id")
       .eq("nome", plano)
       .single();
 
-    // assinatura
-    const { error: erroAssinatura } = await supabase
+    await supabase
       .from("assinatura")
       .update({
-        plano_id: planoData?.id,
+        plano_id: planoData?.id || null,
         status,
       })
-      .eq("aluno_id", alunoData.id);
-
-    if (erroAssinatura) {
-      console.error("ERRO UPDATE ASSINATURA:", erroAssinatura);
-      return res.status(500).json({ erro: erroAssinatura.message });
-    }
+      .eq("aluno_id", aluno.id);
 
     res.json({ sucesso: true });
+
   } catch (err) {
-    console.error("ERRO GERAL PUT:", err);
+    console.error("ERRO PUT:", err);
     res.status(500).json({ erro: err.message });
   }
 };
 
+
 // =========================
-// DELETE
+// DELETE (SOFT DELETE SIMPLIFICADO)
 // =========================
 exports.deletePessoa = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data: alunoData } = await supabase
+    const { data: aluno } = await supabase
       .from("aluno")
       .select("id")
       .eq("pessoa_id", id)
       .single();
 
-    if (alunoData) {
-      await supabase.from("assinatura").delete().eq("aluno_id", alunoData.id);
-      await supabase.from("aluno").delete().eq("id", alunoData.id);
+    if (aluno) {
+      await supabase.from("assinatura").delete().eq("aluno_id", aluno.id);
+      await supabase.from("aluno").delete().eq("id", aluno.id);
     }
 
     await supabase.from("pessoa").delete().eq("id", id);
 
     res.json({ sucesso: true });
+
   } catch (err) {
     console.error("ERRO DELETE:", err);
     res.status(500).json({ erro: err.message });

@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { X, UserPlus } from "lucide-react";
 import "../styles/modal_cadastro_pessoa.css";
+
 export default function ModalCadastroPessoa({
   titulo = "Novo Cadastro",
   icone = <UserPlus size={18} />,
@@ -11,6 +12,7 @@ export default function ModalCadastroPessoa({
   textoBotao = "Salvar",
   mostrarPlano = false,
   mostrarCargo = false,
+  planos = [],
 }) {
   return (
     <div className="modal-overlay">
@@ -59,9 +61,7 @@ export default function ModalCadastroPessoa({
             <label>Telefone *</label>
             <input
               value={dados.telefone}
-              onChange={(e) =>
-                setDados({ ...dados, telefone: e.target.value })
-              }
+              onChange={(e) => setDados({ ...dados, telefone: e.target.value })}
               placeholder="Ex: (11) 99999-9999"
             />
           </div>
@@ -81,9 +81,7 @@ export default function ModalCadastroPessoa({
             <label>Endereço *</label>
             <input
               value={dados.endereco}
-              onChange={(e) =>
-                setDados({ ...dados, endereco: e.target.value })
-              }
+              onChange={(e) => setDados({ ...dados, endereco: e.target.value })}
               placeholder="Ex: Rua das Flores, 123"
             />
           </div>
@@ -92,15 +90,17 @@ export default function ModalCadastroPessoa({
             <div className="input-group">
               <label>Plano *</label>
               <select
-                value={dados.plano}
+                value={dados.plano_id || ""}
                 onChange={(e) =>
-                  setDados({ ...dados, plano: e.target.value })
+                  setDados({ ...dados, plano_id: e.target.value })
                 }
               >
                 <option value="">Selecione um plano</option>
-                <option value="Mensal">Mensal</option>
-                <option value="Trimestral">Trimestral</option>
-                <option value="Anual">Anual</option>
+                {planos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nome_plano}
+                  </option>
+                ))}
               </select>
             </div>
           )}
@@ -110,9 +110,7 @@ export default function ModalCadastroPessoa({
               <label>Cargo *</label>
               <select
                 value={dados.cargo}
-                onChange={(e) =>
-                  setDados({ ...dados, cargo: e.target.value })
-                }
+                onChange={(e) => setDados({ ...dados, cargo: e.target.value })}
               >
                 <option value="">Selecione um cargo</option>
                 <option value="Professor">Professor</option>
