@@ -6,6 +6,7 @@ const cors = require("cors");
 const pessoaRoutes = require("./routes/pessoa.routes");
 const authRoutes = require("./routes/auth.routes");
 
+
 const app = express();
 
 const cookieParser = require("cookie-parser");
@@ -19,6 +20,9 @@ app.use(cookieParser());
 
 app.use("/api/pessoas", pessoaRoutes);
 app.use("/api/auth", authRoutes);
+
+
+
 
 
 app.get("/", (req, res) => {

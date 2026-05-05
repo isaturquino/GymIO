@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Sidebar from "../layout/Sidebar";
 import ModalCadastroPessoa from "../components/ModalCadastroPessoa";
 import "../styles/alunos.css";
@@ -38,40 +37,13 @@ export default function Alunos() {
   const [alunos, setAlunos] = useState([]);
   const [planos, setPlanos] = useState([]);
   const [busca, setBusca] = useState("");
+
   const [stats, setStats] = useState({
     total: 0,
     novosMes: 0,
     cancelamentos: 0,
     crescimento: 0,
   });
-
-  useEffect(() => {
-    async function carregarDados() {
-      try {
-        const [alunosRes, totalRes, planosRes] = await Promise.all([
-          fetch("http://localhost:3002/api/pessoas?tipo=aluno"),
-          fetch("http://localhost:3002/api/pessoas/total-alunos"),
-          fetch("http://localhost:3002/api/pessoas/planos"),
-        ]);
-
-        const alunosData = await alunosRes.json();
-        const totalData = await totalRes.json();
-        const planosData = await planosRes.json();
-
-        setAlunos(Array.isArray(alunosData) ? alunosData : []);
-        setPlanos(Array.isArray(planosData) ? planosData : []);
-        setStats((prev) => ({
-          ...prev,
-          total: totalData.totalAlunos || 0,
-        }));
-      } catch (err) {
-        console.error("Erro ao carregar dados:", err);
-        setAlunos([]);
-      }
-    }
-
-    carregarDados();
-  }, []);
 
   const [filtroStatus, setFiltroStatus] = useState("Todos");
   const [modalAdicionarAberto, setModalAdicionarAberto] = useState(false);
@@ -82,37 +54,78 @@ export default function Alunos() {
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [alunoExcluindo, setAlunoExcluindo] = useState(null);
 
+  useEffect(() => {
+    carregarDados();
+  }, []);
+
+  async function carregarDados() {
+    try {
+      const [alunosRes, totalRes, planosRes] = await Promise.all([
+        fetch(`${API}?tipo=aluno`),
+        fetch(`${API}/total-alunos`),
+        fetch(`${API}/planos`),
+      ]);
+
+      const alunosData = await alunosRes.json();
+      const totalData = await totalRes.json();
+      const planosData = await planosRes.json();
+
+      setAlunos(Array.isArray(alunosData) ? alunosData : []);
+      setPlanos(Array.isArray(planosData) ? planosData : []);
+
+      setStats((prev) => ({
+        ...prev,
+        total: totalData.totalAlunos || 0,
+      }));
+    } catch (err) {
+      console.error("Erro ao carregar dados:", err);
+      setAlunos([]);
+      setPlanos([]);
+    }
+  }
+
+  async function recarregarAlunos() {
+    try {
+      const res = await fetch(`${API}?tipo=aluno`);
+      const data = await res.json();
+      setAlunos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Erro ao recarregar alunos:", err);
+      setAlunos([]);
+    }
+  }
+
   const alunosFiltrados = useMemo(() => {
     return alunos.filter((aluno) => {
       const termo = busca.toLowerCase();
+
       const correspondeBusca =
         (aluno.nome || "").toLowerCase().includes(termo) ||
         (aluno.cpf || "").includes(busca) ||
         (aluno.email || "").toLowerCase().includes(termo);
+
       const correspondeStatus =
         filtroStatus === "Todos" || aluno.status === filtroStatus;
+
       return correspondeBusca && correspondeStatus;
     });
   }, [alunos, busca, filtroStatus]);
 
-  async function recarregarAlunos() {
-    const res = await fetch("http://localhost:3002/api/pessoas?tipo=aluno");
-    const data = await res.json();
-    setAlunos(Array.isArray(data) ? data : []);
-  }
-
   async function salvarNovoAluno() {
     try {
-      const res = await fetch("http://localhost:3002/api/pessoas", {
+      const res = await fetch(API, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(novoAluno),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert("Erro ao salvar");
+        console.error(data);
+        alert("Erro ao salvar aluno");
         return;
       }
 
@@ -120,7 +133,7 @@ export default function Alunos() {
       setNovoAluno(alunoInicial);
       setModalAdicionarAberto(false);
     } catch (err) {
-      console.error("ERRO NO FETCH:", err);
+      console.error("Erro ao salvar aluno:", err);
       alert("Erro de conexão com o servidor");
     }
   }
@@ -133,33 +146,41 @@ export default function Alunos() {
   async function salvarEdicao() {
     if (!alunoEditando) return;
 
-    const res = await fetch(`${API}/${alunoEditando.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nome: alunoEditando.nome,
-        cpf: alunoEditando.cpf,
-        telefone: alunoEditando.telefone,
-        email: alunoEditando.email,
-        dataNascimento: alunoEditando.dataNascimento || alunoEditando.data_nascimento,
-        endereco: alunoEditando.endereco,
-        status: alunoEditando.status,
-        plano_id: alunoEditando.plano_id,
-        senha: alunoEditando.senha,
-      }),
-    });
+    try {
+      const res = await fetch(`${API}/${alunoEditando.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome: alunoEditando.nome,
+          cpf: alunoEditando.cpf,
+          telefone: alunoEditando.telefone,
+          email: alunoEditando.email,
+          dataNascimento:
+            alunoEditando.dataNascimento || alunoEditando.data_nascimento,
+          endereco: alunoEditando.endereco,
+          status: alunoEditando.status,
+          plano_id: alunoEditando.plano_id,
+          senha: alunoEditando.senha,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      console.error(data);
-      alert("Erro ao editar");
-      return;
+      if (!res.ok) {
+        console.error(data);
+        alert("Erro ao editar aluno");
+        return;
+      }
+
+      await recarregarAlunos();
+      setModalEditarAberto(false);
+      setAlunoEditando(null);
+    } catch (err) {
+      console.error("Erro ao editar aluno:", err);
+      alert("Erro de conexão com o servidor");
     }
-
-    await recarregarAlunos();
-    setModalEditarAberto(false);
-    setAlunoEditando(null);
   }
 
   function abrirExclusao(aluno) {
@@ -170,17 +191,32 @@ export default function Alunos() {
   async function confirmarExclusao() {
     if (!alunoExcluindo) return;
 
-    await fetch(`${API}/${alunoExcluindo.id}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`${API}/${alunoExcluindo.id}`, {
+        method: "DELETE",
+      });
 
-    setAlunos((lista) => lista.filter((a) => a.id !== alunoExcluindo.id));
-    setModalExcluirAberto(false);
-    setAlunoExcluindo(null);
+      if (!res.ok) {
+        alert("Erro ao excluir aluno");
+        return;
+      }
+
+      setAlunos((lista) => lista.filter((a) => a.id !== alunoExcluindo.id));
+      setModalExcluirAberto(false);
+      setAlunoExcluindo(null);
+    } catch (err) {
+      console.error("Erro ao excluir aluno:", err);
+      alert("Erro de conexão com o servidor");
+    }
   }
 
   function formatarData(data) {
     if (!data) return "-";
     if (data.includes("/")) return data;
+
     const [ano, mes, dia] = data.split("-");
+    if (!ano || !mes || !dia) return data;
+
     return `${dia}/${mes}/${ano}`;
   }
 
@@ -271,15 +307,17 @@ export default function Alunos() {
             </div>
 
             <div className="filters">
-              {["Todos", "Ativo", "Inadimplente", "Cancelado"].map((status) => (
-                <button
-                  key={status}
-                  className={filtroStatus === status ? "active" : ""}
-                  onClick={() => setFiltroStatus(status)}
-                >
-                  {status === "Ativo" ? "Ativos" : status}
-                </button>
-              ))}
+              {["Todos", "Ativo", "Inadimplente", "Cancelado"].map(
+                (status) => (
+                  <button
+                    key={status}
+                    className={filtroStatus === status ? "active" : ""}
+                    onClick={() => setFiltroStatus(status)}
+                  >
+                    {status === "Ativo" ? "Ativos" : status}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
@@ -334,17 +372,29 @@ export default function Alunos() {
                     <td>{aluno.cpf}</td>
                     <td>{aluno.telefone}</td>
                     <td>{aluno.email}</td>
-                    <td>{formatarData(aluno.dataNascimento || aluno.data_nascimento)}</td>
+                    <td>
+                      {formatarData(
+                        aluno.dataNascimento || aluno.data_nascimento
+                      )}
+                    </td>
                     <td className="address-cell">{aluno.endereco}</td>
 
                     <td>
-                      <span className={`badge plano-${(aluno.plano || "").toLowerCase()}`}>
+                      <span
+                        className={`badge plano-${(
+                          aluno.plano || ""
+                        ).toLowerCase()}`}
+                      >
                         {aluno.plano || "-"}
                       </span>
                     </td>
 
                     <td>
-                      <span className={`badge status-${(aluno.status || "").toLowerCase()}`}>
+                      <span
+                        className={`badge status-${(
+                          aluno.status || ""
+                        ).toLowerCase()}`}
+                      >
                         {aluno.status || "-"}
                       </span>
                     </td>
@@ -354,7 +404,9 @@ export default function Alunos() {
                     <td>
                       <div className="password-cell">
                         <span>
-                          {senhaVisivelId === aluno.id ? aluno.senha || "" : "••••••••"}
+                          {senhaVisivelId === aluno.id
+                            ? aluno.senha || ""
+                            : "••••••••"}
                         </span>
 
                         <button
@@ -434,7 +486,10 @@ export default function Alunos() {
                 <input
                   value={alunoEditando.nome || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, nome: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      nome: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -444,7 +499,10 @@ export default function Alunos() {
                 <input
                   value={alunoEditando.cpf || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, cpf: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      cpf: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -455,7 +513,10 @@ export default function Alunos() {
                   type="email"
                   value={alunoEditando.email || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, email: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      email: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -465,7 +526,10 @@ export default function Alunos() {
                 <input
                   value={alunoEditando.telefone || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, telefone: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      telefone: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -480,7 +544,10 @@ export default function Alunos() {
                     ""
                   }
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, dataNascimento: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      dataNascimento: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -490,7 +557,10 @@ export default function Alunos() {
                 <input
                   value={alunoEditando.endereco || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, endereco: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      endereco: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -500,7 +570,10 @@ export default function Alunos() {
                 <select
                   value={alunoEditando.plano_id || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, plano_id: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      plano_id: e.target.value,
+                    })
                   }
                 >
                   <option value="">Selecione um plano</option>
@@ -517,7 +590,10 @@ export default function Alunos() {
                 <select
                   value={alunoEditando.status || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, status: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      status: e.target.value,
+                    })
                   }
                 >
                   <option value="Ativo">Ativo</option>
@@ -532,7 +608,10 @@ export default function Alunos() {
                   type="password"
                   value={alunoEditando.senha || ""}
                   onChange={(e) =>
-                    setAlunoEditando({ ...alunoEditando, senha: e.target.value })
+                    setAlunoEditando({
+                      ...alunoEditando,
+                      senha: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -588,7 +667,13 @@ export default function Alunos() {
                 <span>Plano: {alunoExcluindo.plano || "-"}</span>
                 <span>Status: {alunoExcluindo.status || "-"}</span>
                 <span>Matrícula: {alunoExcluindo.matricula}</span>
-                <span>Nascimento: {formatarData(alunoExcluindo.dataNascimento)}</span>
+                <span>
+                  Nascimento:{" "}
+                  {formatarData(
+                    alunoExcluindo.dataNascimento ||
+                      alunoExcluindo.data_nascimento
+                  )}
+                </span>
                 <span>E-mail: {alunoExcluindo.email}</span>
                 <span>Telefone: {alunoExcluindo.telefone}</span>
                 <span>Endereço: {alunoExcluindo.endereco}</span>

@@ -14,6 +14,7 @@ router.get("/planos", controller.getPlanos);
 // =========================
 // CRUD
 // =========================
+router.get("/", controller.getPessoas);
 router.post("/", controller.createPessoa);
 router.put("/:id", controller.updatePessoa);
 router.delete("/:id", controller.deletePessoa);
