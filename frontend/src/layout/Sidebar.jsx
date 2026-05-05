@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import {
   LayoutDashboard,
   Users,
@@ -14,15 +15,16 @@ import {
 } from "lucide-react";
 import "./Sidebar.css";
 
+
 const NAV_ITEMS = [
-  { id: "dashboard",    label: "Dashboard",    path: "/Dashboard",    icon: <LayoutDashboard size={18} /> },
-  { id: "alunos",       label: "Alunos",       path: "/Alunos",       icon: <Users size={18} /> },
-  { id: "planos",       label: "Planos",       path: "/Planos",       icon: <CreditCard size={18} /> },
-  { id: "equipe",       label: "Equipe",       path: "/Equipe",       icon: <UserCog size={18} /> },
-  { id: "financeiro",   label: "Financeiro",   path: "/Financeiro",   icon: <DollarSign size={18} /> },
-  { id: "acesso",       label: "Acesso",       path: "/Acesso",       icon: <Lock size={18} /> },
+  { id: "dashboard", label: "Dashboard", path: "/Dashboard", icon: <LayoutDashboard size={18} /> },
+  { id: "alunos", label: "Alunos", path: "/Alunos", icon: <Users size={18} /> },
+  { id: "planos", label: "Planos", path: "/Planos", icon: <CreditCard size={18} /> },
+  { id: "equipe", label: "Equipe", path: "/Equipe", icon: <UserCog size={18} /> },
+  { id: "financeiro", label: "Financeiro", path: "/Financeiro", icon: <DollarSign size={18} /> },
+  { id: "acesso", label: "Acesso", path: "/Acesso", icon: <Lock size={18} /> },
   { id: "equipamentos", label: "Equipamentos", path: "/Equipamentos", icon: <Wrench size={18} /> },
-  { id: "relatorios",   label: "Relatórios",   path: "/Relatorios",   icon: <FileText size={18} /> },
+  { id: "relatorios", label: "Relatórios", path: "/Relatorios", icon: <FileText size={18} /> },
 ];
 
 export default function Sidebar({
@@ -30,12 +32,16 @@ export default function Sidebar({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
+
 
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
     // limpe o auth aqui (ex: localStorage.removeItem("token"))
-    navigate("/login");
+    logout();
+    navigate("/");
+
   };
 
   return (

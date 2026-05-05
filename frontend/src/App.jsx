@@ -2,16 +2,17 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./styles/globals.css";
 
-import Login        from "./pages/Login";
-import Register     from "./pages/Register";
-import Dashboard    from "./pages/Dashboard";
-import Alunos       from "./pages/Alunos";
-import Planos       from "./pages/Planos";
-import Equipe       from "./pages/Equipe";
-import Financeiro   from "./pages/Financeiro";
-import Acesso       from "./pages/Acesso";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Alunos from "./pages/Alunos";
+import Planos from "./pages/Planos";
+import Equipe from "./pages/Equipe";
+import Financeiro from "./pages/Financeiro";
+import Acesso from "./pages/Acesso";
 import Equipamentos from "./pages/Equipamentos";
-import Relatorios   from "./pages/Relatorios";
+import Relatorios from "./pages/Relatorios";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -23,14 +24,46 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* App */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/alunos" element={<Alunos />} />
-        <Route path="/planos" element={<Planos />} />
-        <Route path="/equipe" element={<Equipe />} />
-        <Route path="/financeiro" element={<Financeiro />} />
-        <Route path="/acesso" element={<Acesso />} />
-        <Route path="/equipamentos" element={<Equipamentos />} />
-        <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/alunos" element={
+          <ProtectedRoute>
+            <Alunos />
+          </ProtectedRoute>
+        } />
+        <Route path="/planos" element={
+          <ProtectedRoute>
+            <Planos />
+          </ProtectedRoute>
+        } />
+        <Route path="/equipe" element={
+          <ProtectedRoute>
+            <Equipe />
+          </ProtectedRoute>
+        } />
+        <Route path="/financeiro" element={
+          <ProtectedRoute>
+            <Financeiro />
+          </ProtectedRoute>
+        } />
+        <Route path="/acesso" element={
+          <ProtectedRoute>
+            <Acesso />
+          </ProtectedRoute>
+        } />
+        <Route path="/equipamentos" element={
+          <ProtectedRoute>
+            <Equipamentos />
+          </ProtectedRoute>
+        } />
+        <Route path="/relatorios" element={
+          <ProtectedRoute>
+            <Relatorios />
+          </ProtectedRoute>
+        } />
 
         {/* fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
