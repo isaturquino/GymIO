@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import "../styles/auth.css";
 import authService from "../services/authService";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -13,12 +15,22 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    await authService.login({ email, senha });
+
+    try {
+      const data = await authService.login({ email, senha });
+
+      login(data.user);
+
+      navigate("/dashboard");
+    } catch (error) {
+      alert(error.response?.data?.erro || "Erro ao fazer login.");
+    }
   };
+
 
   return (
     <div className="auth-container">
-      
+
       {/* ESQUERDA */}
       <div className="auth-left">
         <div className="auth-logo">GymIO</div>
@@ -74,8 +86,8 @@ export default function Login() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
               />
-              <span onClick={() => setShowSenha(!showSenha)} style={{cursor:"pointer"}}>
-                {showSenha ? <EyeOff size={18}/> : <Eye size={18}/>}
+              <span onClick={() => setShowSenha(!showSenha)} style={{ cursor: "pointer" }}>
+                {showSenha ? <EyeOff size={18} /> : <Eye size={18} />}
               </span>
             </div>
 
@@ -94,4 +106,5 @@ export default function Login() {
       </div>
     </div>
   );
+  
 }

@@ -1,33 +1,53 @@
-import { supabase } from "../config/supabase.js";
+const supabase = require("../config/supabase");
 
-export const login = async (req, res) => {
-  const { email, password } = req.body;
+exports.login = async (req, res) => {
+  try {
+    const { email, senha } = req.body;
 
-  const { data, error } =
-    await supabase.auth.signInWithPassword({
+    if (!email || !senha) {
+      return res.status(400).json({
+        erro: "Email e senha são obrigatórios.",
+      });
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password: senha,
     });
 
-  if (error) {
-    return res.status(400).json({ error: error.message });
-  }
+    if (error) {
+      return res.status(401).json({
+        erro: "Email ou senha inválidos.",
+      });
+    }
 
-  return res.json(data);
+    // 🟢 DEPOIS cria o cookie
+    res.cookie("token", data.session.access_token, {
+      httpOnly: true,
+      secure: false, // true em produção
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    return res.json({
+      mensagem: "Login realizado com sucesso.",
+      user: data.user,
+    });
+
+  } catch (err) {
+    return res.status(500).json({
+      erro: err.message,
+    });
+  }
 };
 
-export const register = async (req, res) => {
-  const { email, password } = req.body;
+exports.logout = (req, res) => {
+  res.clearCookie("token");
+  res.json({ mensagem: "Logout realizado" });
+};
 
-  const { data, error } =
-    await supabase.auth.signUp({
-      email,
-      password
-    });
-
-  if (error) {
-    return res.status(400).json({ error: error.message });
-  }
-
-  return res.json(data);
+exports.me = async (req, res) => {
+  return res.json({
+    user: req.user,
+  });
 };
