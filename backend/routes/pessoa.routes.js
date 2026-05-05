@@ -8,8 +8,8 @@ const controller = require("../controllers/pessoa.controller");
 router.get("/", controller.getPessoas);
 
 // adicionais úteis
-router.get("/total-alunos", controller.getTotalAlunos);
-router.get("/planos", controller.getPlanos);
+// router.get("/total-alunos", controller.getTotalAlunos);
+// router.get("/planos", controller.getPlanos);
 
 // =========================
 // CRUD
