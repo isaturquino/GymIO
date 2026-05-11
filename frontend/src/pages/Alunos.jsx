@@ -129,12 +129,28 @@ export default function Alunos() {
         return;
       }
 
-      await recarregarAlunos();
+      try {
+        await api.post("/pessoas", novoAluno);
+
+        alert("Aluno cadastrado com sucesso!");
+        fecharModal();
+        await recarregarAlunos();
+      } catch (error) {
+        console.error(error.response?.data || error);
+
+        alert(error.response?.data?.erro || "Erro ao salvar aluno");
+      }
       setNovoAluno(alunoInicial);
       setModalAdicionarAberto(false);
-    } catch (err) {
-      console.error("Erro ao salvar aluno:", err);
-      alert("Erro de conexão com o servidor");
+    } catch (error) {
+      console.error(error.response?.data || error);
+
+      if (error.response?.data?.erro?.includes("pessoa_cpf_key")) {
+        alert("Já existe uma pessoa cadastrada com este CPF.");
+        return;
+      }
+
+      alert("Já existe uma pessoa cadastrada com este CPF.");
     }
   }
 
@@ -399,7 +415,7 @@ export default function Alunos() {
                       </span>
                     </td>
 
-                    <td>{formatarData(aluno.data_matricula)}</td>
+                    <td>{formatarData(aluno.matricula)}</td>
 
                     <td>
                       <div className="password-cell">
@@ -671,7 +687,7 @@ export default function Alunos() {
                   Nascimento:{" "}
                   {formatarData(
                     alunoExcluindo.dataNascimento ||
-                      alunoExcluindo.data_nascimento
+                    alunoExcluindo.data_nascimento
                   )}
                 </span>
                 <span>E-mail: {alunoExcluindo.email}</span>
