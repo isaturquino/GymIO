@@ -129,17 +129,9 @@ export default function Alunos() {
         return;
       }
 
-      try {
-        await api.post("/pessoas", novoAluno);
+      alert("Aluno cadastrado com sucesso!");
+      await recarregarAlunos();
 
-        alert("Aluno cadastrado com sucesso!");
-        fecharModal();
-        await recarregarAlunos();
-      } catch (error) {
-        console.error(error.response?.data || error);
-
-        alert(error.response?.data?.erro || "Erro ao salvar aluno");
-      }
       setNovoAluno(alunoInicial);
       setModalAdicionarAberto(false);
     } catch (error) {
@@ -176,7 +168,9 @@ export default function Alunos() {
           dataNascimento:
             alunoEditando.dataNascimento || alunoEditando.data_nascimento,
           endereco: alunoEditando.endereco,
-          status: alunoEditando.status,
+          status:
+            alunoEditando.status_assinatura ||
+            alunoEditando.status,
           plano_id: alunoEditando.plano_id,
           senha: alunoEditando.senha,
         }),
@@ -213,7 +207,9 @@ export default function Alunos() {
       });
 
       if (!res.ok) {
-        alert("Erro ao excluir aluno");
+        const erro = await res.json();
+        console.error("Erro ao excluir aluno:", erro);
+        alert(erro.erro || "Erro ao excluir aluno");
         return;
       }
 
@@ -604,11 +600,11 @@ export default function Alunos() {
               <div className="input-group">
                 <label>Status *</label>
                 <select
-                  value={alunoEditando.status || ""}
+                  value={alunoEditando.status_assinatura || alunoEditando.status || ""}
                   onChange={(e) =>
                     setAlunoEditando({
                       ...alunoEditando,
-                      status: e.target.value,
+                      status_assinatura: e.target.value,
                     })
                   }
                 >
@@ -681,7 +677,7 @@ export default function Alunos() {
               <div>
                 <span>CPF: {alunoExcluindo.cpf}</span>
                 <span>Plano: {alunoExcluindo.plano || "-"}</span>
-                <span>Status: {alunoExcluindo.status || "-"}</span>
+                <span>Status: {alunoExcluindo.status_assinatura || "-"}</span>
                 <span>Matrícula: {alunoExcluindo.matricula}</span>
                 <span>
                   Nascimento:{" "}

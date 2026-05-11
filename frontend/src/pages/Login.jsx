@@ -19,7 +19,7 @@ export default function Login() {
     try {
       const data = await authService.login({ email, senha });
 
-      login(data.user);
+      await login();
 
       await checkAuth();
 
@@ -28,6 +28,8 @@ export default function Login() {
       alert(error.response?.data?.erro || "Erro ao fazer login.");
     }
   };
+
+  
 
 
   return (
@@ -108,5 +110,5 @@ export default function Login() {
       </div>
     </div>
   );
-  
+
 }
