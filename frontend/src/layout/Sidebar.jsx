@@ -16,6 +16,7 @@ import {
 import "./Sidebar.css";
 
 
+
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", path: "/Dashboard", icon: <LayoutDashboard size={18} /> },
   { id: "alunos", label: "Alunos", path: "/Alunos", icon: <Users size={18} /> },
@@ -27,9 +28,8 @@ const NAV_ITEMS = [
   { id: "relatorios", label: "Relatórios", path: "/Relatorios", icon: <FileText size={18} /> },
 ];
 
-export default function Sidebar({
-  user = { name: "Ana Costa", role: "Gerente", initials: "AC" },
-}) {
+export default function Sidebar() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
@@ -56,10 +56,10 @@ export default function Sidebar({
       </div>
 
       <div className="gymio-sidebar__user">
-        <div className="gymio-sidebar__avatar">{user.initials}</div>
+        <div className="gymio-sidebar__avatar">{user?.nome?.charAt(0)?.toUpperCase() || "U"}</div>
         <div>
-          <div className="gymio-sidebar__user-name">{user.name}</div>
-          <div className="gymio-sidebar__user-role">{user.role}</div>
+          <div className="gymio-sidebar__user-name">{user?.nome || "Usuário"}</div>
+          <div className="gymio-sidebar__user-role">{user?.status || "Sem status"}</div>
         </div>
       </div>
 

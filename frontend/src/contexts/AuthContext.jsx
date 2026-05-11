@@ -7,16 +7,20 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  async function checkAuth() {
+  const checkAuth = async () => {
     try {
       const response = await api.get("/auth/me");
       setUser(response.data.user);
     } catch (error) {
+      if (![401, 404].includes(error.response?.status)) {
+        console.error("Erro ao verificar autenticação:", error);
+      }
+
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     checkAuth();

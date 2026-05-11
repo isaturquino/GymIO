@@ -6,7 +6,7 @@ import authService from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, checkAuth } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -19,13 +19,17 @@ export default function Login() {
     try {
       const data = await authService.login({ email, senha });
 
-      login(data.user);
+      await login();
+
+      await checkAuth();
 
       navigate("/dashboard");
     } catch (error) {
       alert(error.response?.data?.erro || "Erro ao fazer login.");
     }
   };
+
+  
 
 
   return (
@@ -106,5 +110,5 @@ export default function Login() {
       </div>
     </div>
   );
-  
+
 }

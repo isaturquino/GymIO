@@ -129,12 +129,20 @@ export default function Alunos() {
         return;
       }
 
+      alert("Aluno cadastrado com sucesso!");
       await recarregarAlunos();
+
       setNovoAluno(alunoInicial);
       setModalAdicionarAberto(false);
-    } catch (err) {
-      console.error("Erro ao salvar aluno:", err);
-      alert("Erro de conexão com o servidor");
+    } catch (error) {
+      console.error(error.response?.data || error);
+
+      if (error.response?.data?.erro?.includes("pessoa_cpf_key")) {
+        alert("Já existe uma pessoa cadastrada com este CPF.");
+        return;
+      }
+
+      alert("Já existe uma pessoa cadastrada com este CPF.");
     }
   }
 
@@ -160,7 +168,9 @@ export default function Alunos() {
           dataNascimento:
             alunoEditando.dataNascimento || alunoEditando.data_nascimento,
           endereco: alunoEditando.endereco,
-          status: alunoEditando.status,
+          status:
+            alunoEditando.status_assinatura ||
+            alunoEditando.status,
           plano_id: alunoEditando.plano_id,
           senha: alunoEditando.senha,
         }),
@@ -197,7 +207,9 @@ export default function Alunos() {
       });
 
       if (!res.ok) {
-        alert("Erro ao excluir aluno");
+        const erro = await res.json();
+        console.error("Erro ao excluir aluno:", erro);
+        alert(erro.erro || "Erro ao excluir aluno");
         return;
       }
 
@@ -399,7 +411,7 @@ export default function Alunos() {
                       </span>
                     </td>
 
-                    <td>{formatarData(aluno.data_matricula)}</td>
+                    <td>{formatarData(aluno.matricula)}</td>
 
                     <td>
                       <div className="password-cell">
@@ -588,11 +600,11 @@ export default function Alunos() {
               <div className="input-group">
                 <label>Status *</label>
                 <select
-                  value={alunoEditando.status || ""}
+                  value={alunoEditando.status_assinatura || alunoEditando.status || ""}
                   onChange={(e) =>
                     setAlunoEditando({
                       ...alunoEditando,
-                      status: e.target.value,
+                      status_assinatura: e.target.value,
                     })
                   }
                 >
@@ -665,13 +677,13 @@ export default function Alunos() {
               <div>
                 <span>CPF: {alunoExcluindo.cpf}</span>
                 <span>Plano: {alunoExcluindo.plano || "-"}</span>
-                <span>Status: {alunoExcluindo.status || "-"}</span>
+                <span>Status: {alunoExcluindo.status_assinatura || "-"}</span>
                 <span>Matrícula: {alunoExcluindo.matricula}</span>
                 <span>
                   Nascimento:{" "}
                   {formatarData(
                     alunoExcluindo.dataNascimento ||
-                      alunoExcluindo.data_nascimento
+                    alunoExcluindo.data_nascimento
                   )}
                 </span>
                 <span>E-mail: {alunoExcluindo.email}</span>
