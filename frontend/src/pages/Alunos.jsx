@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import Sidebar from "../layout/Sidebar";
 import ModalCadastroPessoa from "../components/ModalCadastroPessoa";
+import ModalPerfil from "../components/ModalPerfil";
 import "../styles/alunos.css";
 import "../styles/globals.css";
 
