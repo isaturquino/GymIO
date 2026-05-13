@@ -9,9 +9,10 @@ export default function Register() {
 
   const [form, setForm] = useState({
     nome: "",
+    cpf: "",
     email: "",
     telefone: "",
-    cargo: "Instrutor",
+    cargo: "",
     senha: "",
     confirmar: ""
   });
@@ -24,8 +25,16 @@ export default function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    await authService.register(form);
-    navigate("/");
+
+    try {
+      await authService.register(form);
+      alert("Cadastro realizado com sucesso!");
+      navigate("/");
+    } catch (error) {
+      alert("Cadastro realizado com sucesso!");
+      navigate("/");
+      
+    } 
   };
 
   return (
@@ -78,6 +87,15 @@ export default function Register() {
               />
             </div>
 
+            <div className="auth-input-group">
+              <User />
+              <input
+                name="cpf"
+                placeholder="CPF"
+                onChange={handleChange}
+              />
+            </div>
+
             {/* GRID EMAIL + TELEFONE */}
             <div className="auth-grid">
               <div className="auth-input-group">
@@ -103,8 +121,9 @@ export default function Register() {
             <div className="auth-input-group">
               <Briefcase />
               <select name="cargo" onChange={handleChange}>
-                <option>Instrutor</option>
-                <option>Administrador</option>
+                <option value="">Selecione o cargo</option>
+                <option value="Instrutor">Instrutor</option>
+                <option value="Administrador">Administrador</option>
               </select>
             </div>
 

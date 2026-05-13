@@ -1,13 +1,19 @@
+import api from "./api";
+
 const authService = {
-  login: async (data) => {
-    console.log("LOGIN:", data);
-    return new Promise((resolve) => setTimeout(resolve, 500));
+  login: async ({ email, senha }) => {
+    const response = await api.post("/auth/login", {
+      email,
+      senha,
+    });
+
+    return response.data;
   },
 
-  register: async (data) => {
-    console.log("REGISTER:", data);
-    return new Promise((resolve) => setTimeout(resolve, 500));
-  }
+  register: async (dados) => {
+    const response = await api.post("/auth/register", dados);
+    return response.data;
+  },
 };
 
 export default authService;
