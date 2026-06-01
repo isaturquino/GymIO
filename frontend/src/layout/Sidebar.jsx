@@ -18,6 +18,7 @@ import {
   Briefcase,
   Pencil,
   X,
+  User,
 } from "lucide-react";
 
 import "./Sidebar.css";
@@ -35,6 +36,12 @@ const NAV_ITEMS = [
     label: "Alunos",
     path: "/Alunos",
     icon: <Users size={18} />,
+  },
+  {
+    id: "pessoa",
+    label: "Pessoas",
+    path: "/pessoas",
+    icon: <User size={18} />,
   },
 
   {
