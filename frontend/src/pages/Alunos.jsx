@@ -144,6 +144,7 @@ export default function Alunos() {
       }
 
       alert("Já existe uma pessoa cadastrada com este CPF.");
+
     }
   }
 
@@ -179,6 +180,7 @@ export default function Alunos() {
 
       const data = await res.json();
 
+
       if (!res.ok) {
         console.error(data);
         alert("Erro ao editar aluno");
@@ -208,9 +210,11 @@ export default function Alunos() {
       });
 
       if (!res.ok) {
+
         const erro = await res.json();
         console.error("Erro ao excluir aluno:", erro);
         alert(erro.erro || "Erro ao excluir aluno");
+
         return;
       }
 
@@ -412,7 +416,9 @@ export default function Alunos() {
                       </span>
                     </td>
 
+
                     <td>{formatarData(aluno.matricula)}</td>
+
 
                     <td>
                       <div className="password-cell">
@@ -601,11 +607,13 @@ export default function Alunos() {
               <div className="input-group">
                 <label>Status *</label>
                 <select
+
                   value={alunoEditando.status_assinatura || alunoEditando.status || ""}
                   onChange={(e) =>
                     setAlunoEditando({
                       ...alunoEditando,
                       status_assinatura: e.target.value,
+
                     })
                   }
                 >
@@ -678,13 +686,16 @@ export default function Alunos() {
               <div>
                 <span>CPF: {alunoExcluindo.cpf}</span>
                 <span>Plano: {alunoExcluindo.plano || "-"}</span>
+
                 <span>Status: {alunoExcluindo.status_assinatura || "-"}</span>
+
                 <span>Matrícula: {alunoExcluindo.matricula}</span>
                 <span>
                   Nascimento:{" "}
                   {formatarData(
                     alunoExcluindo.dataNascimento ||
                     alunoExcluindo.data_nascimento
+
                   )}
                 </span>
                 <span>E-mail: {alunoExcluindo.email}</span>

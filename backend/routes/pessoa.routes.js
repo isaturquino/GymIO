@@ -6,8 +6,10 @@ const controller = require("../controllers/pessoa.controller");
 // GET
 // =========================
 
+
 router.get("/total-alunos", controller.getTotalAlunos);
 router.get("/planos", controller.getPlanos);
+
 
 // =========================
 // CRUD

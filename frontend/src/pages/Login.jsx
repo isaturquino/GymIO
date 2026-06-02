@@ -6,7 +6,9 @@ import authService from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
+
   const { login, checkAuth } = useAuth();
+
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -19,9 +21,11 @@ export default function Login() {
     try {
       const data = await authService.login({ email, senha });
 
+
       await login();
 
       await checkAuth();
+
 
       navigate("/dashboard");
     } catch (error) {
@@ -29,7 +33,7 @@ export default function Login() {
     }
   };
 
-  
+
 
 
   return (
