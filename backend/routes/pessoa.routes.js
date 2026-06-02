@@ -9,6 +9,8 @@ const controller = require("../controllers/pessoa.controller");
 
 router.get("/total-alunos", controller.getTotalAlunos);
 router.get("/planos", controller.getPlanos);
+router.get("/cargos", controller.getCargos);
+
 
 
 // =========================

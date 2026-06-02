@@ -43,6 +43,7 @@ export default function Pessoa() {
   const [listaPessoas, setListaPessoas] = useState([]);
   const [listaPlanos, setListaPlanos] = useState([]);
   const [termoPesquisa, setTermoPesquisa] = useState("");
+  const [listaCargos, setListaCargos] = useState([]);
 
   const [indicadores, setIndicadores] = useState({
     total: 0,
@@ -64,30 +65,39 @@ export default function Pessoa() {
   }, []);
 
   async function obterDadosIniciais() {
-    try {
-      const [respostaPessoas, respostaContagem, respostaPlanos] = await Promise.all([
-        fetch(`${ENDPOINT_API}?tipo=aluno`),
-        fetch(`${ENDPOINT_API}/total-alunos`),
-        fetch(`${ENDPOINT_API}/planos`),
-      ]);
+  try {
+    const [
+      respostaPessoas,
+      respostaContagem,
+      respostaPlanos,
+      respostaCargos,
+    ] = await Promise.all([
+      fetch(`${ENDPOINT_API}?tipo=aluno`),
+      fetch(`${ENDPOINT_API}/total-alunos`),
+      fetch(`${ENDPOINT_API}/planos`),
+      fetch(`${ENDPOINT_API}/cargos`),
+    ]);
 
-      const dadosPessoas = await respostaPessoas.json();
-      const dadosContagem = await respostaContagem.json();
-      const dadosPlanos = await respostaPlanos.json();
+    const dadosPessoas = await respostaPessoas.json();
+    const dadosContagem = await respostaContagem.json();
+    const dadosPlanos = await respostaPlanos.json();
+    const dadosCargos = await respostaCargos.json();
 
-      setListaPessoas(Array.isArray(dadosPessoas) ? dadosPessoas : []);
-      setListaPlanos(Array.isArray(dadosPlanos) ? dadosPlanos : []);
+    setListaPessoas(Array.isArray(dadosPessoas) ? dadosPessoas : []);
+    setListaPlanos(Array.isArray(dadosPlanos) ? dadosPlanos : []);
+    setListaCargos(Array.isArray(dadosCargos) ? dadosCargos : []);
 
-      setIndicadores((estadoAnterior) => ({
-        ...estadoAnterior,
-        total: dadosContagem.totalAlunos || 0,
-      }));
-    } catch (erro) {
-      console.error("Erro ao carregar dados:", erro);
-      setListaPessoas([]);
-      setListaPlanos([]);
-    }
+    setIndicadores((estadoAnterior) => ({
+      ...estadoAnterior,
+      total: dadosContagem.totalAlunos || 0,
+    }));
+  } catch (erro) {
+    console.error("Erro ao carregar dados:", erro);
+    setListaPessoas([]);
+    setListaPlanos([]);
+    setListaCargos([]);
   }
+}
 
   async function atualizarRegistros() {
     try {
@@ -118,30 +128,55 @@ export default function Pessoa() {
 
   async function ejecutarInclusao() {
     try {
+      const payload = {
+        nome: dadosNovoRegistro.nome,
+        cpf: dadosNovoRegistro.cpf,
+        telefone: dadosNovoRegistro.telefone,
+        email: dadosNovoRegistro.email,
+        dataNascimento: dadosNovoRegistro.dataNascimento,
+        endereco: dadosNovoRegistro.endereco,
+        senha: dadosNovoRegistro.senha,
+
+        isAluno: dadosNovoRegistro.isAluno,
+        plano_id: dadosNovoRegistro.isAluno ? dadosNovoRegistro.plano_id : null,
+        status: dadosNovoRegistro.isAluno ? dadosNovoRegistro.status : null,
+        data_matricula: dadosNovoRegistro.isAluno
+          ? dadosNovoRegistro.dataMatricula
+          : null,
+
+        isFuncionario: dadosNovoRegistro.isFuncionario,
+        cargo_id: dadosNovoRegistro.isFuncionario
+          ? dadosNovoRegistro.cargo
+          : null,
+        data_admissao: dadosNovoRegistro.isFuncionario
+          ? dadosNovoRegistro.dataAdmissao
+          : null,
+      };
+
       const resposta = await fetch(ENDPOINT_API, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dadosNovoRegistro),
+        body: JSON.stringify(payload),
       });
 
       const resultado = await resposta.json();
 
       if (!resposta.ok) {
         console.error(resultado);
-        alert("Erro ao salvar aluno");
+        alert(resultado.erro || "Erro ao salvar cadastro");
         return;
       }
 
-      alert("Aluno cadastrado com sucesso!");
+      alert("Cadastro realizado com sucesso!");
       await atualizarRegistros();
 
       setDadosNovoRegistro(payloadInicial);
       setIsModalInclusaoAberto(false);
     } catch (erro) {
-      console.error(erro.response?.data || erro);
-      alert("Já existe uma pessoa cadastrada com este CPF.");
+      console.error(erro);
+      alert("Erro de conexão com o servidor");
     }
   }
 
@@ -436,6 +471,7 @@ export default function Pessoa() {
           onSave={executarInclusao}
           textoBotao="Salvar"
           planos={listaPlanos}
+          cargos={listaCargos}
         />
       )}
 
@@ -453,6 +489,7 @@ export default function Pessoa() {
           onSave={executarEdicao}
           textoBotao="Salvar alterações"
           planos={listaPlanos}
+          cargos={listaCargos}
         />
       )}
 

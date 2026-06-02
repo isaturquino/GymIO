@@ -32,12 +32,20 @@ const alunoInicial = {
   status: "Ativo",
   matricula: "",
   senha: "",
+  isAluno: true,
+  isFuncionario: false,
+  dataMatricula: "",
+  cargo: "",
+  dataAdmissao: "",
+  salario: "",
+  comissao: "",
 };
 
 export default function Alunos() {
   const [alunos, setAlunos] = useState([]);
   const [planos, setPlanos] = useState([]);
   const [busca, setBusca] = useState("");
+  const [cargos, setCargos] = useState([]);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -61,18 +69,21 @@ export default function Alunos() {
 
   async function carregarDados() {
     try {
-      const [alunosRes, totalRes, planosRes] = await Promise.all([
+      const [alunosRes, totalRes, planosRes, cargosRes] = await Promise.all([
         fetch(`${API}?tipo=aluno`),
         fetch(`${API}/total-alunos`),
         fetch(`${API}/planos`),
+        fetch(`${API}/cargos`),
       ]);
 
       const alunosData = await alunosRes.json();
       const totalData = await totalRes.json();
       const planosData = await planosRes.json();
+      const cargosData = await cargosRes.json();
 
       setAlunos(Array.isArray(alunosData) ? alunosData : []);
       setPlanos(Array.isArray(planosData) ? planosData : []);
+      setCargos(Array.isArray(cargosData) ? cargosData : []);
 
       setStats((prev) => ({
         ...prev,
@@ -82,6 +93,7 @@ export default function Alunos() {
       console.error("Erro ao carregar dados:", err);
       setAlunos([]);
       setPlanos([]);
+      setCargos([]);
     }
   }
 
@@ -476,9 +488,8 @@ export default function Alunos() {
           onClose={() => setModalAdicionarAberto(false)}
           onSave={salvarNovoAluno}
           textoBotao="Salvar"
-          mostrarPlano={true}
-          mostrarCargo={false}
           planos={planos}
+          cargos={cargos}
         />
       )}
 

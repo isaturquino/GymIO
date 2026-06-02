@@ -78,6 +78,23 @@ exports.getPessoas = async (req, res) => {
   }
 };
 
+exports.getCargos = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("cargo")
+      .select("*")
+      .is("deleted_at", null);
+
+    if (error) {
+      return res.status(500).json({ erro: error.message });
+    }
+
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ erro: err.message });
+  }
+};
+
 // =========================
 // POST - CRIAR ALUNO COMPLETO
 // =========================
@@ -90,15 +107,26 @@ exports.createPessoa = async (req, res) => {
       email,
       dataNascimento,
       endereco,
+      senha,
+
+      isAluno,
       plano_id,
       status,
       data_matricula,
-      senha,
+
+      isFuncionario,
+      cargo_id,
+      data_admissao,
     } = req.body;
+
+    if (!isAluno && !isFuncionario) {
+      return res.status(400).json({
+        erro: "Selecione se a pessoa é aluno, funcionário ou ambos.",
+      });
+    }
 
     const { data: pessoa, error: erroPessoa } = await supabase
       .from("pessoa")
-
       .insert([{
         nome,
         cpf,
@@ -106,9 +134,8 @@ exports.createPessoa = async (req, res) => {
         email,
         data_nascimento: dataNascimento,
         endereco,
-        password: senha
+        password: senha,
       }])
-
       .select()
       .single();
 
@@ -117,174 +144,72 @@ exports.createPessoa = async (req, res) => {
       return res.status(500).json({ erro: erroPessoa.message });
     }
 
-    const { data: aluno, error: erroAluno } = await supabase
-      .from("aluno")
-      .insert([
-        {
+    let alunoCriado = null;
+    let funcionarioCriado = null;
+
+    if (isAluno) {
+      const { data: aluno, error: erroAluno } = await supabase
+        .from("aluno")
+        .insert([{
           pessoa_id: pessoa.id,
-
           status: status || "Ativo",
-          data_matricula: new Date().toISOString().split("T")[0],
+          data_matricula: data_matricula || new Date().toISOString().split("T")[0],
+        }])
+        .select()
+        .single();
 
-        },
-      ])
-      .select()
-      .single();
+      if (erroAluno) {
+        console.error("ERRO CREATE ALUNO:", erroAluno);
+        return res.status(500).json({ erro: erroAluno.message });
+      }
 
-    if (erroAluno) {
-      console.error("ERRO CREATE ALUNO:", erroAluno);
-      return res.status(500).json({ erro: erroAluno.message });
-    }
+      alunoCriado = aluno;
 
-    const { error: erroAssinatura } = await supabase
-      .from("assinatura")
-      .insert([
-        {
+      const { error: erroAssinatura } = await supabase
+        .from("assinatura")
+        .insert([{
           aluno_id: aluno.id,
           plano_id: plano_id || null,
-
           status_assinatura: status || "Ativo",
-          data_inicio: new Date().toISOString().split("T")[0],
-        },
-      ]);
+          data_inicio: data_matricula || new Date().toISOString().split("T")[0],
+          data_assinatura: data_matricula || new Date().toISOString().split("T")[0],
+        }]);
 
-    if (erroAssinatura) {
-      console.error("ERRO CREATE ASSINATURA:", erroAssinatura);
-      return res.status(500).json({ erro: erroAssinatura.message });
+      if (erroAssinatura) {
+        console.error("ERRO CREATE ASSINATURA:", erroAssinatura);
+        return res.status(500).json({ erro: erroAssinatura.message });
+      }
+    }
+
+    if (isFuncionario) {
+      const { data: funcionario, error: erroFuncionario } = await supabase
+        .from("funcionario")
+        .insert([{
+          pessoa_id: pessoa.id,
+          cargo_id: cargo_id || null,
+          data_admissao: data_admissao || new Date().toISOString().split("T")[0],
+          status: "Ativo",
+        }])
+        .select()
+        .single();
+
+      if (erroFuncionario) {
+        console.error("ERRO CREATE FUNCIONARIO:", erroFuncionario);
+        return res.status(500).json({ erro: erroFuncionario.message });
+      }
+
+      funcionarioCriado = funcionario;
     }
 
     return res.status(201).json({
       sucesso: true,
       pessoa,
-      aluno,
+      aluno: alunoCriado,
+      funcionario: funcionarioCriado,
     });
+
   } catch (err) {
     console.error("ERRO GERAL POST:", err);
-    return res.status(500).json({ erro: err.message });
-  }
-};
-
-// =========================
-// PUT - ATUALIZAR ALUNO
-// =========================
-exports.updatePessoa = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const {
-      nome,
-      cpf,
-      telefone,
-      email,
-      dataNascimento,
-      endereco,
-      plano_id,
-      status,
-      senha,
-    } = req.body;
-
-    const { error: erroPessoa } = await supabase
-      .from("pessoa")
-      .update({
-        nome,
-        cpf,
-        telefone,
-        email,
-        data_nascimento: dataNascimento,
-        endereco,
-        password: senha,
-      })
-      .eq("id", id);
-
-    if (erroPessoa) {
-      console.error("ERRO UPDATE PESSOA:", erroPessoa);
-      return res.status(500).json({ erro: erroPessoa.message });
-    }
-
-    let { data: aluno, error: erroBuscaAluno } = await supabase
-      .from("aluno")
-      .select("id")
-      .eq("pessoa_id", id)
-      .maybeSingle();
-
-    if (erroBuscaAluno) {
-      console.error("ERRO BUSCA ALUNO:", erroBuscaAluno);
-      return res.status(500).json({ erro: erroBuscaAluno.message });
-    }
-
-    if (!aluno) {
-      const { data: novoAluno, error: erroCriarAluno } = await supabase
-        .from("aluno")
-        .insert([
-          {
-            pessoa_id: id,
-            status: status || "Ativo",
-            data_matricula: new Date().toISOString().split("T")[0],
-          },
-        ])
-        .select("id")
-        .single();
-
-      if (erroCriarAluno) {
-        console.error("ERRO CRIAR ALUNO NO UPDATE:", erroCriarAluno);
-        return res.status(500).json({ erro: erroCriarAluno.message });
-      }
-
-      aluno = novoAluno;
-    } else {
-      const { error: erroAluno } = await supabase
-        .from("aluno")
-        .update({
-          status: status || "Ativo",
-        })
-        .eq("id", aluno.id);
-
-      if (erroAluno) {
-        console.error("ERRO UPDATE ALUNO:", erroAluno);
-        return res.status(500).json({ erro: erroAluno.message });
-      }
-    }
-
-    const { data: assinaturaExistente } = await supabase
-      .from("assinatura")
-      .select("id")
-      .eq("aluno_id", aluno.id)
-      .maybeSingle();
-
-    if (assinaturaExistente) {
-      const { error: erroAssinatura } = await supabase
-        .from("assinatura")
-        .update({
-          plano_id: plano_id || null,
-          status_assinatura: status || "Ativo",
-        })
-        .eq("aluno_id", aluno.id);
-
-      if (erroAssinatura) {
-        console.error("ERRO UPDATE ASSINATURA:", erroAssinatura);
-        return res.status(500).json({ erro: erroAssinatura.message });
-      }
-    } else {
-      const { error: erroCriarAssinatura } = await supabase
-        .from("assinatura")
-        .insert([
-          {
-            aluno_id: aluno.id,
-            plano_id: plano_id || null,
-            status_assinatura: status || "Ativo",
-            data_inicio: new Date().toISOString().split("T")[0],
-          },
-        ]);
-
-      if (erroCriarAssinatura) {
-        console.error("ERRO CRIAR ASSINATURA:", erroCriarAssinatura);
-        return res.status(500).json({ erro: erroCriarAssinatura.message });
-      }
-    }
-
-    return res.json({ sucesso: true, mensagem: "Aluno atualizado com sucesso" });
-  } catch (err) {
-    console.error("ERRO GERAL PUT:", err);
     return res.status(500).json({ erro: err.message });
   }
 };
@@ -411,4 +336,36 @@ exports.getPlanos = async (req, res) => {
     return res.status(500).json({ erro: err.message });
   }
 
+};
+
+
+exports.updatePessoa = async (req, res) => {
+  try {
+    return res.status(501).json({
+      erro: "Rota de atualização ainda não implementada.",
+    });
+  } catch (err) {
+    return res.status(500).json({ erro: err.message });
+  }
+};
+
+// =========================
+// GET - CARGOS
+// =========================
+exports.getCargos = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("cargo")
+      .select("id, nome_cargo, salario_base")
+      .is("deleted_at", null)
+      .order("nome_cargo", { ascending: true });
+
+    if (error) {
+      return res.status(500).json({ erro: error.message });
+    }
+
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ erro: err.message });
+  }
 };
