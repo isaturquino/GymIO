@@ -36,7 +36,7 @@ const payloadInicial = {
   cargo: "",
   dataAdmissao: "",
   salario: "",
-  comissao: "",
+
 };
 
 export default function Pessoa() {
@@ -89,7 +89,7 @@ export default function Pessoa() {
 
     setIndicadores((estadoAnterior) => ({
       ...estadoAnterior,
-      total: dadosContagem.totalAlunos || 0,
+      total: dadosContagem.total || 0,
     }));
   } catch (erro) {
     console.error("Erro ao carregar dados:", erro);
@@ -126,7 +126,7 @@ export default function Pessoa() {
     });
   }, [listaPessoas, termoPesquisa, filtroAtual]);
 
-  async function ejecutarInclusao() {
+  async function executarInclusao() {
     try {
       const payload = {
         nome: dadosNovoRegistro.nome,
@@ -218,7 +218,7 @@ export default function Pessoa() {
           cargo: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.cargo : null,
           dataAdmissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.dataAdmissao : null,
           salario: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.salario : null,
-          comissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.comissao : null,
+         
         }),
       });
 
@@ -397,7 +397,7 @@ export default function Pessoa() {
               </thead>
 
               <tbody>
-                ={dadosFiltrados.map((pessoa) => (
+                {dadosFiltrados.map((pessoa) => (
                   <tr key={pessoa.id}>
                     <td>
                       <div className="table-actions">

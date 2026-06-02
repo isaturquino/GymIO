@@ -341,8 +341,69 @@ exports.getPlanos = async (req, res) => {
 
 exports.updatePessoa = async (req, res) => {
   try {
-    return res.status(501).json({
-      erro: "Rota de atualização ainda não implementada.",
+    const { id } = req.params;
+
+    const {
+      nome,
+      cpf,
+      telefone,
+      email,
+      dataNascimento,
+      endereco,
+      senha,
+      plano_id,
+      status,
+    } = req.body;
+
+    const { data: pessoa, error: erroPessoa } = await supabase
+      .from("pessoa")
+      .update({
+        nome,
+        cpf,
+        telefone,
+        email,
+        data_nascimento: dataNascimento,
+        endereco,
+        password: senha,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (erroPessoa) {
+      return res.status(500).json({ erro: erroPessoa.message });
+    }
+
+    const { data: aluno, error: erroAlunoBusca } = await supabase
+      .from("aluno")
+      .select("id")
+      .eq("pessoa_id", id)
+      .maybeSingle();
+
+    if (erroAlunoBusca) {
+      return res.status(500).json({ erro: erroAlunoBusca.message });
+    }
+
+    if (aluno) {
+      await supabase
+        .from("aluno")
+        .update({
+          status: status || "Ativo",
+        })
+        .eq("id", aluno.id);
+
+      await supabase
+        .from("assinatura")
+        .update({
+          plano_id: plano_id || null,
+          status_assinatura: status || "Ativo",
+        })
+        .eq("aluno_id", aluno.id);
+    }
+
+    return res.json({
+      sucesso: true,
+      pessoa,
     });
   } catch (err) {
     return res.status(500).json({ erro: err.message });

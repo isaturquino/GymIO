@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { X, UserPlus, GraduationCap, Briefcase } from "lucide-react";
 import "../styles/modal_cadastro_pessoa.css";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ModalCadastroPessoa({
   titulo = "Novo Cadastro",
@@ -31,9 +32,26 @@ export default function ModalCadastroPessoa({
       cargo: checked ? dados.cargo : "",
       dataAdmissao: checked ? dados.dataAdmissao : "",
       salario: checked ? dados.salario : "",
-      comissao: checked ? dados.comissao : "",
+      
     });
   };
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  function aplicarMascaraCPF(valor) {
+  return valor
+    .replace(/\D/g, "")
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+function aplicarMascaraTelefone(valor) {
+  return valor
+    .replace(/\D/g, "")
+    .slice(0, 11)
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+}
 
   return (
     <div className="modal-overlay">
@@ -65,10 +83,16 @@ export default function ModalCadastroPessoa({
             <div className="input-group">
               <label>CPF *</label>
               <input
-                value={dados.cpf || ""}
-                onChange={(e) => setDados({ ...dados, cpf: e.target.value })}
-                placeholder="Ex: 123.456.789-00"
-              />
+              type="text"
+              value={dados.cpf}
+              onChange={(e) =>
+                setDados({
+                  ...dados,
+                  cpf: aplicarMascaraCPF(e.target.value),
+                })
+              }
+              placeholder="000.000.000-00"
+            />
             </div>
 
             <div className="input-group">
@@ -84,10 +108,16 @@ export default function ModalCadastroPessoa({
             <div className="input-group">
               <label>Telefone *</label>
               <input
-                value={dados.telefone || ""}
-                onChange={(e) => setDados({ ...dados, telefone: e.target.value })}
-                placeholder="Ex: (11) 99999-9999"
-              />
+              type="text"
+              value={dados.telefone}
+              onChange={(e) =>
+                setDados({
+                  ...dados,
+                  telefone: aplicarMascaraTelefone(e.target.value),
+                })
+              }
+              placeholder="(00) 00000-0000"
+            />
             </div>
 
             <div className="input-group">
@@ -111,14 +141,30 @@ export default function ModalCadastroPessoa({
             </div>
 
             <div className="input-group input-full">
-              <label>Senha *</label>
+            <label>Senha *</label>
+
+            <div className="senha-container">
               <input
-                type="password"
-                value={dados.senha || ""}
-                onChange={(e) => setDados({ ...dados, senha: e.target.value })}
-                placeholder="Digite uma senha"
+                type={mostrarSenha ? "text" : "password"}
+                value={dados.senha}
+                onChange={(e) =>
+                  setDados({
+                    ...dados,
+                    senha: e.target.value,
+                  })
+                }
+                placeholder="Digite a senha"
               />
+
+              <button
+                type="button"
+                className="btn-olho"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+              >
+                {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+          </div>
 
             <div className="vinculos-section input-full">
               <div className="vinculo-divider">
@@ -259,16 +305,6 @@ export default function ModalCadastroPessoa({
                       value={dados.salario || ""}
                       onChange={(e) => setDados({ ...dados, salario: e.target.value })}
                       placeholder="Ex: 2.500,00"
-                    />
-                  </div>
-
-                  <div className="input-group">
-                    <label>Comissão (%)</label>
-                    <input
-                      type="text"
-                      value={dados.comissao || ""}
-                      onChange={(e) => setDados({ ...dados, comissao: e.target.value })}
-                      placeholder="Ex: 5"
                     />
                   </div>
                 </div>
