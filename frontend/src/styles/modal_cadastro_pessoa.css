@@ -90,6 +90,31 @@
   cursor: pointer;
   user-select: none;
 }
+.senha-container {
+  position: relative;
+  width: 100%;
+}
+
+.senha-container input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.btn-olho {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #64748b;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 @keyframes fadeInRight {
   from {
