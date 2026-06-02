@@ -23,6 +23,7 @@ import {
 
 import "./Sidebar.css";
 
+
 const NAV_ITEMS = [
   {
     id: "dashboard",
@@ -85,6 +86,7 @@ const NAV_ITEMS = [
     path: "/Relatorios",
     icon: <FileText size={18} />,
   },
+
 ];
 
 export default function Sidebar() {
@@ -95,6 +97,7 @@ export default function Sidebar() {
 
   const location = useLocation();
 
+
   const [modalPerfilAberto, setModalPerfilAberto] =
     useState(false);
 
@@ -104,6 +107,7 @@ export default function Sidebar() {
   const handleLogout = () => {
     logout();
     navigate("/");
+
   };
 
   return (

@@ -11,8 +11,9 @@ export default function ModalCadastroPessoa({
   onSave,
   textoBotao = "Salvar",
   planos = [],
+  cargos = [],
 }) {
-  
+
   const handleCheckboxAluno = (checked) => {
     setDados({
       ...dados,
@@ -37,7 +38,7 @@ export default function ModalCadastroPessoa({
   return (
     <div className="modal-overlay">
       <div className="modal-container-layout">
-        
+
         {/* MODAL PRINCIPAL - Agora com controle de rolagem próprio se necessário */}
         <div className="modal modal-form">
           <div className="modal-header">
@@ -162,7 +163,7 @@ export default function ModalCadastroPessoa({
         {/* COLUNA INDEPENDENTE DOS MODAIS SECUNDÁRIOS */}
         {(dados.isAluno || dados.isFuncionario) && (
           <div className="modal-satellites-column">
-            
+
             {/* INFORMAÇÕES DO ALUNO */}
             {dados.isAluno && (
               <div className="modal-satellite-card">
@@ -172,7 +173,7 @@ export default function ModalCadastroPessoa({
                     Informações do Aluno
                   </h3>
                 </div>
-                
+
                 <div className="satellite-body">
                   <div className="input-group">
                     <label>Plano *</label>
@@ -224,7 +225,7 @@ export default function ModalCadastroPessoa({
                     Informações do Funcionário
                   </h3>
                 </div>
-                
+
                 <div className="satellite-body">
                   <div className="input-group">
                     <label>Cargo *</label>
@@ -233,9 +234,12 @@ export default function ModalCadastroPessoa({
                       onChange={(e) => setDados({ ...dados, cargo: e.target.value })}
                     >
                       <option value="">Selecione um cargo</option>
-                      <option value="Professor">Professor</option>
-                      <option value="Recepcionista">Recepcionista</option>
-                      <option value="Gerente">Gerente</option>
+
+                      {cargos.map((cargo) => (
+                        <option key={cargo.id} value={cargo.id}>
+                          {cargo.nome_cargo}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

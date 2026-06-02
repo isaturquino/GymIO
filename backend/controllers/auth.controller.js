@@ -152,6 +152,7 @@ exports.login = async (req, res) => {
       });
     }
 
+
     // 🟢 DEPOIS cria o cookie
     res.cookie("token", data.session.access_token, {
       httpOnly: true,
@@ -214,4 +215,5 @@ exports.me = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ erro: err.message });
   }
+
 };
