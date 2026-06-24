@@ -4,7 +4,6 @@ import "./styles/globals.css";
 
 import Pessoa from "./pages/Pessoa"
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Alunos from "./pages/Alunos";
 import Planos from "./pages/Planos";
@@ -22,7 +21,6 @@ function App() {
 
         {/* Auth */}
         <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* App */}
         <Route path="/dashboard" element={
