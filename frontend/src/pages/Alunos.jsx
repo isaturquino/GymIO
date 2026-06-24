@@ -257,6 +257,7 @@ export default function Alunos() {
       .toUpperCase();
   }
 
+
   return (
     <div className="alunos-layout">
       <Sidebar />
