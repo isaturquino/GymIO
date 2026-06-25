@@ -1,7 +1,11 @@
 import "../styles/equipe.css";
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "../layout/Sidebar";
 
+import ModalNovoFuncionario from "../components/ModalNovoFuncionario";
+import ModalEditarFuncionario from "../components/ModalEditarFuncionario";
+import ModalExcluirFuncionario from "../components/ModalExcluirFuncionario";
+import ModalDetalhesFuncionario from "../components/ModalDetalhesFuncionario";
 
 import {
   Search,
@@ -53,70 +57,87 @@ const funcionarios = [
 ];
 
 export default function Equipe() {
+  const [modalNovo, setModalNovo] = useState(false);
+  const [modalEditar, setModalEditar] = useState(false);
+  const [modalExcluir, setModalExcluir] = useState(false);
+  const [modalDetalhes, setModalDetalhes] = useState(false);
+
+  const [funcionarioSelecionado, setFuncionarioSelecionado] =
+    useState(null);
+
   return (
     <div className="equipe-layout">
       <Sidebar />
 
       <main className="equipe-page">
-        {/* HEADER */}
         <header className="equipe-header">
           <div>
             <h1>Equipe</h1>
             <p>Gestão de colaboradores da academia</p>
           </div>
 
-          <button className="btn-primary">
+          <button
+            className="btn-primary"
+            onClick={() => setModalNovo(true)}
+          >
             <UserPlus size={16} />
             Novo Funcionário
           </button>
         </header>
 
-        {/* CARDS */}
         <section className="cards">
-          <div className="card">
-            <div>
-              <span>Total de Funcionários</span>
-              <strong>5</strong>
-            </div>
-            <div className="icon blue">
-              <Users size={18} />
-            </div>
-          </div>
+  <div className="card">
+    <div className="card-info">
+      <span>Total de Funcionários</span>
+      <strong>{funcionarios.length}</strong>
+    </div>
 
-          <div className="card">
-            <div>
-              <span>Ativos</span>
-              <strong>4</strong>
-            </div>
-            <div className="icon green">
-              <Users size={18} />
-            </div>
-          </div>
+    <div className="icon blue">
+      <Users size={18} />
+    </div>
+  </div>
 
-          <div className="card">
-            <div>
-              <span>Folha Mensal</span>
-              <strong>R$ 28.500</strong>
-            </div>
-            <div className="icon blue">
-              <DollarSign size={18} />
-            </div>
-          </div>
+  <div className="card">
+    <div className="card-info">
+      <span>Ativos</span>
+      <strong>
+        {
+          funcionarios.filter(
+            (f) => f.status === "Ativo"
+          ).length
+        }
+      </strong>
+    </div>
 
-          <div className="card">
-            <div>
-              <span>Horas Hoje</span>
-              <strong>48h</strong>
-            </div>
-            <div className="icon blue">
-              <Clock size={18} />
-            </div>
-          </div>
-        </section>
+    <div className="icon green">
+      <Users size={18} />
+    </div>
+  </div>
 
-        {/* CONTEÚDO */}
+  <div className="card">
+    <div className="card-info">
+      <span>Folha Mensal</span>
+      <strong>R$ 28.500</strong>
+    </div>
+
+    <div className="icon blue">
+      <DollarSign size={18} />
+    </div>
+  </div>
+
+  <div className="card">
+    <div className="card-info">
+      <span>Horas Hoje</span>
+      <strong>48h</strong>
+    </div>
+
+    <div className="icon blue">
+      <Clock size={18} />
+    </div>
+  </div>
+</section>
+
         <section className="content">
-          {/* TABELA */}
           <div className="table-box">
             <div className="table-header">
               <h2>Lista de Funcionários</h2>
@@ -164,9 +185,32 @@ export default function Equipe() {
                     </td>
 
                     <td className="acoes">
-                      <Pencil size={16} />
-                      <Trash2 size={16} />
-                      <Info size={16} />
+                      <Pencil
+                        size={16}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setFuncionarioSelecionado(f);
+                          setModalEditar(true);
+                        }}
+                      />
+
+                      <Trash2
+                        size={16}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setFuncionarioSelecionado(f);
+                          setModalExcluir(true);
+                        }}
+                      />
+
+                      <Info
+                        size={16}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setFuncionarioSelecionado(f);
+                          setModalDetalhes(true);
+                        }}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -174,24 +218,52 @@ export default function Equipe() {
             </table>
           </div>
 
-          {/* LATERAL */}
           <div className="side-info">
             <h3>Acessos Rápidos</h3>
+
             <p>
-              Clique em "Novo Funcionário" para cadastrar um novo colaborador
-              com acesso ao sistema.
+              Clique em "Novo Funcionário" para cadastrar
+              um novo colaborador com acesso ao sistema.
             </p>
 
             <div className="box-info">
               <strong>Campos de Login</strong>
-              <p>E-mail e senha são utilizados para acesso.</p>
+
               <p>
-                Funcionários com acesso financeiro podem ver o módulo financeiro.
+                E-mail e senha são utilizados para acesso.
+              </p>
+
+              <p>
+                Funcionários com acesso financeiro podem
+                visualizar o módulo financeiro.
               </p>
             </div>
           </div>
         </section>
       </main>
+
+      <ModalNovoFuncionario
+        aberto={modalNovo}
+        fechar={() => setModalNovo(false)}
+      />
+
+      <ModalEditarFuncionario
+        aberto={modalEditar}
+        fechar={() => setModalEditar(false)}
+        funcionario={funcionarioSelecionado}
+      />
+
+      <ModalExcluirFuncionario
+        aberto={modalExcluir}
+        fechar={() => setModalExcluir(false)}
+        funcionario={funcionarioSelecionado}
+      />
+
+      <ModalDetalhesFuncionario
+        aberto={modalDetalhes}
+        fechar={() => setModalDetalhes(false)}
+        funcionario={funcionarioSelecionado}
+      />
     </div>
   );
-} 
+}
