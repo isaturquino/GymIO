@@ -72,49 +72,7 @@
 .card strong {
   font-size: var(--text-xl);
 }
-.card {
-  background: var(--color-bg-surface);
-  padding: 18px;
-  border-radius: var(--radius-xl);
 
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  transition: var(--transition);
-}
-
-.card-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.card-info span {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.2;
-}
-
-.card-info strong {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  line-height: 1;
-}
-
-.icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-lg);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-}
 
 /* ICONES */
 .icon {
