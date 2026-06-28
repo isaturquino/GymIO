@@ -20,7 +20,7 @@ export default function ModalPerfil({
   const [editando, setEditando] = useState(false);
 
   const [usuario, setUsuario] = useState({
-    nome: "Ana Costa",
+    nome: "Anna Costa",
     cargo: "Gerente",
     email: "ana@gymio.com",
     telefone: "(44) 99999-9999",
