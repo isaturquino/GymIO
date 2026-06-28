@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 
 const pessoaRoutes = require("./routes/pessoa.routes");
 const authRoutes = require("./routes/auth.routes");
+// const dashboardRoutes = require("./routes/dashboard.routes");
 const planosRoutes = require("./routes/planos.routes");
 
 const app = express();
@@ -23,7 +24,10 @@ app.use(cookieParser());
 // ROTAS
 app.use("/api/pessoas", pessoaRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/planos", planosRoutes);
+// app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/planos", planosRoutes)
+
+
 
 // HEALTH CHECK
 app.get("/", (req, res) => {
