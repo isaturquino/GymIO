@@ -13,27 +13,53 @@ import {
 import "../styles/dashboard.css";
 import "../styles/globals.css";
 
-const API = "http://localhost:3002/api/pessoas";
+const API = "http://localhost:3002/api/dashboard";
 
 export default function Dashboard() {
-  // Estados para dados simulados/vindos da API sincronizados com a imagem
   const [stats, setStats] = useState({
-    alunosAtivos: 248,
-    alunosAtivosMudanca: "+12%",
-    receitaMensal: "32.450",
-    receitaMudanca: "+8%",
-    inadimplentes: 12,
-    inadimplentesMudanca: "-3",
-    acessosHoje: 87,
+    alunosAtivos: 0,
+    alunosAtivosMudanca: "0%",
+    receitaMensal: "0",
+    receitaMudanca: "0%",
+    inadimplentes: 0,
+    inadimplentesMudanca: "0",
+    acessosHoje: 0,
+    frequenciaTotal: 0,
+    horarioPico: "-",
+    taxaRetencao: "0%",
+    vencendoHoje: 0,
   });
 
-  const [atividades, setAtividades] = useState([
-    { id: 1, nome: "Maria Silva", acao: "Entrada registrada", tempo: "Agora", iniciais: "MS", classe: "entrada" },
-    { id: 2, nome: "Joao Santos", acao: "Pagamento confirmado", tempo: "5 min", iniciais: "JS", classe: "pagamento" },
-    { id: 3, nome: "Ana Costa", acao: "Nova matrícula - Plano Anual", tempo: "15 min", iniciais: "AC", classe: "matricula" },
-    { id: 4, nome: "Pedro Lima", acao: "Saída registrada", tempo: "20 min", iniciais: "PL", classe: "saida" },
-    { id: 5, nome: "Carlos Souza", acao: "Entrada registrada", tempo: "25 min", iniciais: "CS", classe: "entrada" },
-  ]);
+  const [atividades, setAtividades] = useState([]);
+
+  useEffect(() => {
+    async function carregarDashboard() {
+      try {
+        const resposta = await fetch(API);
+        const dados = await resposta.json();
+
+        setStats({
+          alunosAtivos: dados.alunosAtivos || 0,
+          alunosAtivosMudanca: dados.alunosAtivosMudanca || "0%",
+          receitaMensal: dados.receitaMensal || "0",
+          receitaMudanca: dados.receitaMudanca || "0%",
+          inadimplentes: dados.inadimplentes || 0,
+          inadimplentesMudanca: dados.inadimplentesMudanca || "0",
+          acessosHoje: dados.acessosHoje || 0,
+          frequenciaTotal: dados.frequenciaTotal || 0,
+          horarioPico: dados.horarioPico || "-",
+          taxaRetencao: dados.taxaRetencao || "0%",
+          vencendoHoje: dados.vencendoHoje || 0,
+        });
+
+        setAtividades(dados.atividades || []);
+      } catch (erro) {
+        console.error("Erro ao carregar dashboard:", erro);
+      }
+    }
+
+    carregarDashboard();
+  }, []);
 
   return (
     <div className="dashboard-layout">
@@ -104,7 +130,7 @@ export default function Dashboard() {
               </div>
               <span className="total-badge">
                 <TrendingUp size={14} style={{ marginRight: 4 }} />
-                <strong>593</strong> total
+                <strong>{stats.frequenciaTotal}</strong> total
               </span>
             </div>
             
@@ -135,7 +161,7 @@ export default function Dashboard() {
                     <span>Maior movimento</span>
                   </div>
                 </div>
-                <span className="item-value val-black">18:00</span>
+                <span className="item-value val-black">{stats.horarioPico}</span>
               </div>
 
               <div className="summary-item row-green">
@@ -146,7 +172,7 @@ export default function Dashboard() {
                     <span>Alunos renovando</span>
                   </div>
                 </div>
-                <span className="item-value val-green">89%</span>
+                <span className="item-value val-green">{stats.taxaRetencao}</span>
               </div>
 
               <div className="summary-item row-amber">
@@ -157,7 +183,7 @@ export default function Dashboard() {
                     <span>Matrículas</span>
                   </div>
                 </div>
-                <span className="item-value val-amber">5</span>
+               <span className="item-value val-amber">{stats.vencendoHoje}</span>
               </div>
             </div>
           </article>
