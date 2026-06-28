@@ -32,7 +32,7 @@ export default function ModalCadastroPessoa({
       cargo: checked ? dados.cargo : "",
       dataAdmissao: checked ? dados.dataAdmissao : "",
       salario: checked ? dados.salario : "",
-      
+      comissao: checked ? dados.comissao : "",
     });
   };
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -305,6 +305,16 @@ function aplicarMascaraTelefone(valor) {
                       value={dados.salario || ""}
                       onChange={(e) => setDados({ ...dados, salario: e.target.value })}
                       placeholder="Ex: 2.500,00"
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label>Comissão (%)</label>
+                    <input
+                      type="text"
+                      value={dados.comissao || ""}
+                      onChange={(e) => setDados({ ...dados, comissao: e.target.value })}
+                      placeholder="Ex: 5"
                     />
                   </div>
                 </div>

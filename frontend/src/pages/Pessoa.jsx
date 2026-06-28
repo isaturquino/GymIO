@@ -36,7 +36,7 @@ const payloadInicial = {
   cargo: "",
   dataAdmissao: "",
   salario: "",
-
+  comissao: "",
 };
 
 export default function Pessoa() {
@@ -151,6 +151,12 @@ export default function Pessoa() {
         data_admissao: dadosNovoRegistro.isFuncionario
           ? dadosNovoRegistro.dataAdmissao
           : null,
+        salario: dadosNovoRegistro.isFuncionario
+          ? dadosNovoRegistro.salario
+          : null,
+        comissao: dadosNovoRegistro.isFuncionario
+          ? dadosNovoRegistro.comissao
+          : null,
       };
 
       const resposta = await fetch(ENDPOINT_API, {
@@ -218,7 +224,7 @@ export default function Pessoa() {
           cargo: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.cargo : null,
           dataAdmissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.dataAdmissao : null,
           salario: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.salario : null,
-         
+          comissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.comissao : null,
         }),
       });
 
