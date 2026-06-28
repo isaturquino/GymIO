@@ -18,6 +18,7 @@ import {
 import "../styles/relatorios.css";
 import "../styles/globals.css";
 
+
 export default function Relatorios() {
   const [modalEtapa, setModalEtapa] = useState(null);
   const [relatorioSelecionado, setRelatorioSelecionado] = useState(null);
