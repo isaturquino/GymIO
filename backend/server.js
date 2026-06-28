@@ -6,6 +6,7 @@ const cors = require("cors");
 const pessoaRoutes = require("./routes/pessoa.routes");
 const authRoutes = require("./routes/auth.routes");
 // const dashboardRoutes = require("./routes/dashboard.routes");
+const planosRoutes = require("./routes/planos.routes");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use("/api/pessoas", pessoaRoutes);
 app.use("/api/auth", authRoutes);
 // app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/planos", planosRoutes);
 
 
 
