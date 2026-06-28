@@ -61,14 +61,70 @@ exports.getPessoas = async (req, res) => {
       return res.json(alunos);
     }
 
-    const { data, error } = await supabase.from("pessoa").select("*");
+    const { data, error } = await supabase
+      .from("pessoa")
+      .select(`
+        *,
+        aluno (
+          id,
+          status,
+          data_matricula,
+          deleted_at,
+          assinatura (
+            id,
+            plano_id,
+            status_assinatura,
+            deleted_at
+          )
+        ),
+        funcionario (
+          id,
+          cargo_id,
+          data_admissao,
+          status,
+          deleted_at
+        )
+      `)
+      .is("deleted_at", null);
 
     if (error) {
       console.error("ERRO GET PESSOAS:", error);
       return res.status(500).json({ erro: error.message });
     }
 
-    return res.json(data);
+    const pessoas = data.map((pessoa) => {
+      const aluno = pessoa.aluno?.find((item) => !item.deleted_at);
+      const assinatura = aluno?.assinatura?.find(
+        (item) => !item.deleted_at
+      );
+      const funcionario = pessoa.funcionario?.find(
+        (item) => !item.deleted_at
+      );
+
+      const {
+        aluno: vinculosAluno,
+        funcionario: vinculosFuncionario,
+        ...dadosPessoa
+      } = pessoa;
+
+      return {
+        ...dadosPessoa,
+        isAluno: !!aluno,
+        aluno_id: aluno?.id || null,
+        matricula: aluno?.data_matricula || null,
+        plano_id: assinatura?.plano_id || null,
+        status_assinatura:
+          assinatura?.status_assinatura || aluno?.status || null,
+        data_matricula: aluno?.data_matricula || null,
+        isFuncionario: !!funcionario,
+        funcionario_id: funcionario?.id || null,
+        cargo_id: funcionario?.cargo_id || null,
+        data_admissao: funcionario?.data_admissao || null,
+        status_funcionario: funcionario?.status || null,
+      };
+    });
+
+    return res.json(pessoas);
   } catch (err) {
     console.error("ERRO GERAL GET:", err);
     return res.status(500).json({ erro: err.message });
@@ -222,6 +278,10 @@ exports.updatePessoa = async (req, res) => {
       status,
       data_matricula,
       dataMatricula,
+      isFuncionario,
+      cargo_id,
+      data_admissao,
+      dataAdmissao,
     } = req.body;
 
     const { data: pessoa, error: erroPessoa } = await supabase
@@ -342,6 +402,94 @@ exports.updatePessoa = async (req, res) => {
       }
     }
 
+    if (typeof isFuncionario === "boolean") {
+      const {
+        data: funcionario,
+        error: erroBuscaFuncionario,
+      } = await supabase
+        .from("funcionario")
+        .select("id, data_admissao")
+        .eq("pessoa_id", id)
+        .maybeSingle();
+
+      if (erroBuscaFuncionario) {
+        console.error(
+          "ERRO BUSCA FUNCIONARIO:",
+          erroBuscaFuncionario
+        );
+        return res.status(500).json({
+          erro: erroBuscaFuncionario.message,
+        });
+      }
+
+      if (isFuncionario) {
+        const dadosFuncionario = {
+          cargo_id: cargo_id || null,
+          data_admissao:
+            data_admissao ||
+            dataAdmissao ||
+            funcionario?.data_admissao ||
+            new Date().toISOString().split("T")[0],
+          status: "Ativo",
+          deleted_at: null,
+        };
+
+        if (funcionario) {
+          const { error: erroFuncionario } = await supabase
+            .from("funcionario")
+            .update(dadosFuncionario)
+            .eq("id", funcionario.id);
+
+          if (erroFuncionario) {
+            console.error(
+              "ERRO UPDATE FUNCIONARIO:",
+              erroFuncionario
+            );
+            return res.status(500).json({
+              erro: erroFuncionario.message,
+            });
+          }
+        } else {
+          const { error: erroFuncionario } = await supabase
+            .from("funcionario")
+            .insert([
+              {
+                pessoa_id: id,
+                ...dadosFuncionario,
+              },
+            ]);
+
+          if (erroFuncionario) {
+            console.error(
+              "ERRO CREATE FUNCIONARIO NO UPDATE:",
+              erroFuncionario
+            );
+            return res.status(500).json({
+              erro: erroFuncionario.message,
+            });
+          }
+        }
+      } else if (funcionario) {
+        const { error: erroFuncionario } = await supabase
+          .from("funcionario")
+          .update({
+            status: "Inativo",
+            deleted_at: new Date().toISOString(),
+          })
+          .eq("id", funcionario.id);
+
+        if (erroFuncionario) {
+          console.error(
+            "ERRO DESATIVAR FUNCIONARIO:",
+            erroFuncionario
+          );
+          return res.status(500).json({
+            erro: erroFuncionario.message,
+          });
+        }
+      }
+    }
+
     return res.json({
       sucesso: true,
       mensagem: "Pessoa atualizada com sucesso",
@@ -408,6 +556,21 @@ exports.deletePessoa = async (req, res) => {
         console.error("ERRO DELETE ALUNO:", erroAluno);
         return res.status(500).json({ erro: erroAluno.message });
       }
+    }
+
+    const { error: erroFuncionario } = await supabase
+      .from("funcionario")
+      .update({
+        status: "Inativo",
+        deleted_at: dataExclusao,
+      })
+      .eq("pessoa_id", id);
+
+    if (erroFuncionario) {
+      console.error("ERRO DELETE FUNCIONARIO:", erroFuncionario);
+      return res.status(500).json({
+        erro: erroFuncionario.message,
+      });
     }
 
     const { error: erroPessoa } = await supabase

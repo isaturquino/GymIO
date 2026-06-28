@@ -29,7 +29,7 @@ export default function ModalCadastroPessoa({
     setDados({
       ...dados,
       isFuncionario: checked,
-      cargo: checked ? dados.cargo : "",
+      cargo_id: checked ? dados.cargo_id : "",
       dataAdmissao: checked ? dados.dataAdmissao : "",
       salario: checked ? dados.salario : "",
       comissao: checked ? dados.comissao : "",
@@ -37,21 +37,21 @@ export default function ModalCadastroPessoa({
   };
   const [mostrarSenha, setMostrarSenha] = useState(false);
   function aplicarMascaraCPF(valor) {
-  return valor
-    .replace(/\D/g, "")
-    .slice(0, 11)
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-}
+    return valor
+      .replace(/\D/g, "")
+      .slice(0, 11)
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
 
-function aplicarMascaraTelefone(valor) {
-  return valor
-    .replace(/\D/g, "")
-    .slice(0, 11)
-    .replace(/^(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
-}
+  function aplicarMascaraTelefone(valor) {
+    return valor
+      .replace(/\D/g, "")
+      .slice(0, 11)
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+  }
 
   return (
     <div className="modal-overlay">
@@ -83,16 +83,16 @@ function aplicarMascaraTelefone(valor) {
             <div className="input-group">
               <label>CPF *</label>
               <input
-              type="text"
-              value={dados.cpf}
-              onChange={(e) =>
-                setDados({
-                  ...dados,
-                  cpf: aplicarMascaraCPF(e.target.value),
-                })
-              }
-              placeholder="000.000.000-00"
-            />
+                type="text"
+                value={dados.cpf}
+                onChange={(e) =>
+                  setDados({
+                    ...dados,
+                    cpf: aplicarMascaraCPF(e.target.value),
+                  })
+                }
+                placeholder="000.000.000-00"
+              />
             </div>
 
             <div className="input-group">
@@ -108,16 +108,16 @@ function aplicarMascaraTelefone(valor) {
             <div className="input-group">
               <label>Telefone *</label>
               <input
-              type="text"
-              value={dados.telefone}
-              onChange={(e) =>
-                setDados({
-                  ...dados,
-                  telefone: aplicarMascaraTelefone(e.target.value),
-                })
-              }
-              placeholder="(00) 00000-0000"
-            />
+                type="text"
+                value={dados.telefone}
+                onChange={(e) =>
+                  setDados({
+                    ...dados,
+                    telefone: aplicarMascaraTelefone(e.target.value),
+                  })
+                }
+                placeholder="(00) 00000-0000"
+              />
             </div>
 
             <div className="input-group">
@@ -141,30 +141,30 @@ function aplicarMascaraTelefone(valor) {
             </div>
 
             <div className="input-group input-full">
-            <label>Senha *</label>
+              <label>Senha *</label>
 
-            <div className="senha-container">
-              <input
-                type={mostrarSenha ? "text" : "password"}
-                value={dados.senha}
-                onChange={(e) =>
-                  setDados({
-                    ...dados,
-                    senha: e.target.value,
-                  })
-                }
-                placeholder="Digite a senha"
-              />
+              <div className="senha-container">
+                <input
+                  type={mostrarSenha ? "text" : "password"}
+                  value={dados.senha}
+                  onChange={(e) =>
+                    setDados({
+                      ...dados,
+                      senha: e.target.value,
+                    })
+                  }
+                  placeholder="Digite a senha"
+                />
 
-              <button
-                type="button"
-                className="btn-olho"
-                onClick={() => setMostrarSenha(!mostrarSenha)}
-              >
-                {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+                <button
+                  type="button"
+                  className="btn-olho"
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                >
+                  {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
-          </div>
 
             <div className="vinculos-section input-full">
               <div className="vinculo-divider">
@@ -276,8 +276,10 @@ function aplicarMascaraTelefone(valor) {
                   <div className="input-group">
                     <label>Cargo *</label>
                     <select
-                      value={dados.cargo || ""}
-                      onChange={(e) => setDados({ ...dados, cargo: e.target.value })}
+                      value={dados.cargo_id || ""}
+                      onChange={(e) =>
+                        setDados({ ...dados, cargo_id: e.target.value })
+                      }
                     >
                       <option value="">Selecione um cargo</option>
 

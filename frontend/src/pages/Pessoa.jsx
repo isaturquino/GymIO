@@ -33,7 +33,7 @@ const payloadInicial = {
   isAluno: false,
   isFuncionario: false,
   dataMatricula: "",
-  cargo: "",
+  cargo_id: "",
   dataAdmissao: "",
   salario: "",
   comissao: "",
@@ -72,7 +72,7 @@ export default function Pessoa() {
       respostaPlanos,
       respostaCargos,
     ] = await Promise.all([
-      fetch(`${ENDPOINT_API}?tipo=aluno`),
+      fetch(ENDPOINT_API),
       fetch(`${ENDPOINT_API}/total-alunos`),
       fetch(`${ENDPOINT_API}/planos`),
       fetch(`${ENDPOINT_API}/cargos`),
@@ -101,7 +101,7 @@ export default function Pessoa() {
 
   async function atualizarRegistros() {
     try {
-      const resposta = await fetch(`${ENDPOINT_API}?tipo=aluno`);
+      const resposta = await fetch(ENDPOINT_API);
       const dados = await resposta.json();
       setListaPessoas(Array.isArray(dados) ? dados : []);
     } catch (erro) {
@@ -146,7 +146,7 @@ export default function Pessoa() {
 
         isFuncionario: dadosNovoRegistro.isFuncionario,
         cargo_id: dadosNovoRegistro.isFuncionario
-          ? dadosNovoRegistro.cargo
+          ? dadosNovoRegistro.cargo_id
           : null,
         data_admissao: dadosNovoRegistro.isFuncionario
           ? dadosNovoRegistro.dataAdmissao
@@ -191,9 +191,15 @@ export default function Pessoa() {
     setRegistroSelecionadoEdicao({
       ...item,
       isAluno: !!item.plano_id || item.isAluno || false,
-      isFuncionario: !!item.cargo || item.isFuncionario || false,
+      isFuncionario:
+        !!item.cargo_id || !!item.cargo || item.isFuncionario || false,
+      plano_id: item.plano_id || "",
+      cargo_id: item.cargo_id || "",
       status: item.status_assinatura || item.status || "Ativo",
       dataNascimento: item.dataNascimento || item.data_nascimento || "",
+      dataMatricula:
+        item.data_matricula || item.matricula || "",
+      dataAdmissao: item.data_admissao || "",
     });
     setIsModalEdicaoAberto(true);
   }
@@ -221,7 +227,9 @@ export default function Pessoa() {
           status: registroSelecionadoEdicao.isAluno ? registroSelecionadoEdicao.status : "Ativo",
           dataMatricula: registroSelecionadoEdicao.isAluno ? registroSelecionadoEdicao.dataMatricula : null,
           isFuncionario: registroSelecionadoEdicao.isFuncionario,
-          cargo: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.cargo : null,
+          cargo_id: registroSelecionadoEdicao.isFuncionario
+            ? registroSelecionadoEdicao.cargo_id
+            : null,
           dataAdmissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.dataAdmissao : null,
           salario: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.salario : null,
           comissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.comissao : null,

@@ -35,7 +35,7 @@ const alunoInicial = {
   isAluno: true,
   isFuncionario: false,
   dataMatricula: "",
-  cargo: "",
+  cargo_id: "",
   dataAdmissao: "",
   salario: "",
 };
@@ -489,7 +489,7 @@ export default function Alunos() {
           onSave={salvarNovoAluno}
           textoBotao="Salvar"
           mostrarPlano={true}
-          mostrarCargo={false}
+          mostrarCargo={true}
           planos={planos}
           cargos={cargos}
         />
