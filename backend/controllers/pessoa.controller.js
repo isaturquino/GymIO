@@ -29,18 +29,79 @@ exports.getPessoas = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("pessoa")
-      .select("*")
+      .select(`
+        *,
+        aluno (
+          id,
+          status,
+          data_matricula,
+          assinatura (
+            id,
+            plano_id,
+            status_assinatura,
+            plano (
+              nome_plano
+            )
+          )
+        ),
+        funcionario (
+          id,
+          cargo_id,
+          data_admissao,
+          status
+        )
+      `)
       .is("deleted_at", null)
       .order("id", { ascending: false });
 
-    if (error) return res.status(500).json({ erro: error.message });
+    if (error) {
+      return res.status(500).json({ erro: error.message });
+    }
 
-    return res.json(data);
+    const pessoas = data.map((pessoa) => {
+      const aluno = pessoa.aluno?.find((a) => !a.deleted_at);
+      const assinatura = aluno?.assinatura?.find((s) => !s.deleted_at);
+      const funcionario = pessoa.funcionario?.find((f) => !f.deleted_at);
+
+      return {
+        id: pessoa.id,
+        nome: pessoa.nome,
+        cpf: pessoa.cpf,
+        telefone: pessoa.telefone,
+        email: pessoa.email,
+        dataNascimento: pessoa.data_nascimento,
+        endereco: pessoa.endereco,
+
+        // ALUNO
+        isAluno: !!aluno,
+        matricula: aluno?.data_matricula || "-",
+
+        // PLANO
+        plano: assinatura?.plano?.nome_plano || "-",
+        plano_id: assinatura?.plano_id || "-",
+
+        // STATUS
+        status:
+          assinatura?.status_assinatura ||
+          aluno?.status ||
+          funcionario?.status ||
+          "-",
+
+        // FUNCIONÁRIO
+        isFuncionario: !!funcionario,
+        cargo_id: funcionario?.cargo_id || "-",
+        data_admissao: funcionario?.data_admissao || "-",
+
+        // SEGURANÇA (senha mascarada)
+        senha: pessoa.password ? "••••••••" : "-",
+      };
+    });
+
+    return res.json(pessoas);
   } catch (err) {
     return res.status(500).json({ erro: err.message });
   }
 };
-
 /**
  * =========================
  * POST - CRIAR PESSOA
