@@ -35,7 +35,7 @@ const alunoInicial = {
   isAluno: true,
   isFuncionario: false,
   dataMatricula: "",
-  cargo: "",
+  cargo_id: "",
   dataAdmissao: "",
   salario: "",
 };
@@ -269,7 +269,13 @@ export default function Alunos() {
             <p>Cadastro e controle dos alunos da academia</p>
           </div>
 
-       
+          <button
+            className="btn btn--primary"
+            onClick={() => setModalAdicionarAberto(true)}
+          >
+            <Plus size={17} />
+            Novo Aluno
+          </button>
         </header>
 
         <section className="stats-grid">
@@ -482,6 +488,8 @@ export default function Alunos() {
           onClose={() => setModalAdicionarAberto(false)}
           onSave={salvarNovoAluno}
           textoBotao="Salvar"
+          mostrarPlano={true}
+          mostrarCargo={true}
           planos={planos}
           cargos={cargos}
         />
