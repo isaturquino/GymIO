@@ -48,7 +48,7 @@ export function gerarRelatorioPDF(dados) {
 
   autoTable(doc, {
     startY: 105,
-    head: [["Aluno", "Plano", "Status", "Pagamento"]],
+    head: [dados.colunas],
     body: dados.tabela,
     theme: "grid",
     headStyles: {
