@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const authMiddleware = require("../middlewares/auth");
 
-router.get("/", authMiddleware, (req, res) => {
-  res.json({ mensagem: "Acesso liberado", user: req.user });
-});
+const dashboardController = require("../controllers/dashboard.controller");
+
+router.get("/", dashboardController.buscarDashboard);
 
 module.exports = router;
