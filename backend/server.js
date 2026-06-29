@@ -7,6 +7,7 @@ const pessoaRoutes = require("./routes/pessoa.routes");
 const authRoutes = require("./routes/auth.routes");
 // const dashboardRoutes = require("./routes/dashboard.routes");
 const planosRoutes = require("./routes/planos.routes");
+const acessoRoutes = require("./routes/acesso.routes");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/pessoas", pessoaRoutes);
 app.use("/api/auth", authRoutes);
 // app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/planos", planosRoutes);
+app.use("/api/acessos", acessoRoutes);
 
 
 
