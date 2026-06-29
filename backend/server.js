@@ -12,6 +12,8 @@ const funcionariosRoutes = require("./routes/funcionarios.routes");
 const equipamentosRoutes = require("./routes/equipamentos.routes");
 const manutencoesRoutes = require("./routes/manutencoes.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
+const relatoriosRoutes = require("./routes/relatorios.routes");
+
 
 const app = express();
 
@@ -32,6 +34,7 @@ app.use("/api/funcionarios", funcionariosRoutes);
 app.use("/api/equipamentos", equipamentosRoutes);
 app.use("/api/manutencoes", manutencoesRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/relatorios", relatoriosRoutes);
 
 
 
