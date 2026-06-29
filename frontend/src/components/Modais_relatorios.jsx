@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { gerarRelatorioPDF } from "../utils/pdf/gerarRelatorioPDF";
-import { dadosRelatoriosMock } from "../utils/pdf/dadosRelatorioMock";
 import { Download, FileText, X, CheckCircle, Building2 } from "lucide-react";
 
 import "../styles/modais_relatorios.css";
+const API_RELATORIOS = "http://localhost:3002/api/relatorios";
 
 export default function ModaisRelatorios({
   modalEtapa,
@@ -13,7 +13,39 @@ export default function ModaisRelatorios({
 }) {
   if (!modalEtapa) return null;
 
-  const dadosRelatorio = dadosRelatoriosMock[relatorioSelecionado];
+  const [dadosRelatorio, setDadosRelatorio] = useState(null);
+
+  const [periodo, setPeriodo] = useState({
+    inicio: "2026-05-01",
+    fim: "2026-05-31",
+  });
+  async function buscarRelatorio() {
+  try {
+    const params = new URLSearchParams();
+
+    if (periodo.inicio) params.append("inicio", periodo.inicio);
+    if (periodo.fim) params.append("fim", periodo.fim);
+
+    const url = `${API_RELATORIOS}/${relatorioSelecionado}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+
+    const resposta = await fetch(url);
+
+    if (!resposta.ok) {
+      throw new Error("Erro ao buscar relatório");
+    }
+
+    const dados = await resposta.json();
+    setDadosRelatorio(dados);
+
+    return dados;
+  } catch (erro) {
+    console.error("Erro ao buscar relatório:", erro);
+    alert("Não foi possível buscar os dados do relatório.");
+    return null;
+  }
+}
   const [progresso, setProgresso] = useState(0);
   const [mensagemProgresso, setMensagemProgresso] = useState("");
 
@@ -42,9 +74,13 @@ export default function ModaisRelatorios({
     ];
 
     const timers = etapas.map((etapa) =>
-      setTimeout(() => {
+      setTimeout(async () => {
         setProgresso(etapa.porcentagem);
         setMensagemProgresso(etapa.mensagem);
+
+        if (etapa.porcentagem === 40 && !dadosRelatorio) {
+          await buscarRelatorio();
+        }
       }, etapa.tempo),
     );
 
@@ -56,7 +92,7 @@ export default function ModaisRelatorios({
       timers.forEach(clearTimeout);
       clearTimeout(finalizar);
     };
-  }, [modalEtapa, setModalEtapa]);
+  }, [modalEtapa, setModalEtapa, dadosRelatorio]);
 
   return (
     <div className="modal-overlay">
@@ -78,8 +114,21 @@ export default function ModaisRelatorios({
 
           <label className="modal-label">Período do Relatório</label>
           <div className="modal-duplo">
-            <input type="date" defaultValue="2026-05-01" />
-            <input type="date" defaultValue="2026-05-31" />
+            <input
+            type="date"
+            value={periodo.inicio}
+            onChange={(e) =>
+              setPeriodo({ ...periodo, inicio: e.target.value })
+            }
+          />
+
+          <input
+            type="date"
+            value={periodo.fim}
+            onChange={(e) =>
+              setPeriodo({ ...periodo, fim: e.target.value })
+            }
+          />
           </div>
 
           <div className="modal-actions">
@@ -132,7 +181,10 @@ export default function ModaisRelatorios({
 
             <button
               className="btn btn--primary btn--lg"
-              onClick={() => setModalEtapa(3)}
+              onClick={async () => {
+                await buscarRelatorio();
+                setModalEtapa(3);
+              }}
             >
               Continuar
             </button>
@@ -262,18 +314,34 @@ export default function ModaisRelatorios({
             <FileText size={28} />
 
             <div>
-              <strong>{dadosRelatorio?.titulo.replaceAll(" ", "_")}.pdf</strong>
+              <strong>
+                {(dadosRelatorio?.titulo || "Relatorio").replaceAll(" ", "_")}.pdf
+              </strong>
               <span>1.2 MB</span>
             </div>
           </div>
 
           <button
-            className="btn btn--primary btn--full btn--lg"
-            onClick={() => gerarRelatorioPDF(dadosRelatorio)}
-          >
-            <Download size={16} />
-            Download do PDF
-          </button>
+          type="button"
+          className="btn btn--primary btn--full btn--lg"
+          onClick={async () => {
+            console.log("Clique no download");
+
+            const dados = dadosRelatorio || (await buscarRelatorio());
+
+            console.log("Dados para PDF:", dados);
+
+            if (!dados) {
+              alert("Dados do relatório não encontrados.");
+              return;
+            }
+
+            gerarRelatorioPDF(dados);
+          }}
+        >
+          <Download size={16} />
+          Download do PDF
+        </button>
 
           <button
             className="btn btn--ghost btn--full btn--lg"
