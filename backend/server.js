@@ -20,12 +20,14 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// ROTAS
 app.use("/api/pessoas", pessoaRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/planos", planosRoutes);
 app.use("/api/relatorios", relatoriosRoutes);
 
+// HEALTH CHECK
 app.get("/", (req, res) => {
   res.json({ message: "API GymIO rodando" });
 });
