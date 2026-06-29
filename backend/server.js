@@ -11,6 +11,10 @@ const planosRoutes = require("./routes/planos.routes");
 const app = express();
 
 const cookieParser = require("cookie-parser");
+// para rodar o swagger da documentação
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+const swaggerDocument = YAML.load("../documents/API/swagger.yaml");
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -32,7 +36,12 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3002;
-
+// para rodar o swagger da documentação
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument)
+);
 app.listen(PORT, () => {
   console.log("Servidor rodando na porta", PORT);
 });
