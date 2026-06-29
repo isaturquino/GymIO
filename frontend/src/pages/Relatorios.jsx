@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ModaisRelatorios from "../components/Modais_relatorios";
 import Sidebar from "../layout/Sidebar";
 import { baixarRelatorio } from "../utils/pdf/baixarRelatorio";
-import { dadosRelatoriosMock } from "../utils/pdf/dadosRelatorioMock";
+
 import { relatoriosConfig } from "../utils/constants/relatoriosConfig";
 import {
   Users,
@@ -35,26 +35,6 @@ export default function Relatorios() {
 
   const cards = relatoriosConfig;
 
-  const historico = [
-    {
-      tipo: "receita",
-      titulo: "Receita Mensal",
-      data: "28/03/2026 14:32",
-      periodo: "Mar/2026",
-    },
-    {
-      tipo: "inadimplencia",
-      titulo: "Inadimplência",
-      data: "25/03/2026 10:15",
-      periodo: "Jan-Mar/2026",
-    },
-    {
-      tipo: "alunos",
-      titulo: "Alunos Ativos",
-      data: "20/03/2026 16:45",
-      periodo: "Mar/2026",
-    },
-  ];
 
   return (
     <div className="relatorios-layout">
@@ -83,7 +63,7 @@ export default function Relatorios() {
         <section className="cards-grid">
           {cards.map((card) => {
             const Icon = card.icon;
-            const dadosCard = dadosRelatoriosMock[card.tipo];
+            
 
             return (
               <article className="relatorio-card" key={card.tipo}>
@@ -98,14 +78,6 @@ export default function Relatorios() {
                   </div>
                 </div>
 
-                <div className="card-dados">
-                  {dadosCard?.resumo?.map((item) => (
-                    <div className="linha-dado" key={item.label}>
-                      <span>{item.label}</span>
-                      <strong>{item.valor}</strong>
-                    </div>
-                  ))}
-                </div>
 
                 <button
                   className="btn btn--outline btn--full btn-exportar"
@@ -117,48 +89,6 @@ export default function Relatorios() {
               </article>
             );
           })}
-        </section>
-
-        <section className="historico-box">
-          <div className="historico-header">
-            <div className="card-icon blue">
-              <FileText />
-            </div>
-
-            <div>
-              <h3>Histórico de Relatórios</h3>
-              <p>Últimos relatórios gerados</p>
-            </div>
-          </div>
-
-          <div className="historico-lista">
-            {historico.map((item) => (
-              <div className="historico-item" key={item.tipo}>
-                <div className="historico-info">
-                  <div className="historico-icon">
-                    <FileText size={18} />
-                  </div>
-
-                  <div>
-                    <strong>{item.titulo}</strong>
-                    <span>{item.data}</span>
-                  </div>
-                </div>
-
-                <div className="historico-download">
-                  <span>{item.periodo}</span>
-
-                  <button
-                    type="button"
-                    onClick={() => baixarRelatorio(item.tipo)}
-                  >
-                    <Download size={15} />
-                    Download
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </section>
       </main>
 

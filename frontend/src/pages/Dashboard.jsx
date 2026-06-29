@@ -7,7 +7,6 @@ import {
   Activity,
   Clock,
   TrendingUp,
-  ChevronRight
 } from "lucide-react";
 
 import "../styles/dashboard.css";

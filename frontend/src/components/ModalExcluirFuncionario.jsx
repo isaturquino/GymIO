@@ -1,11 +1,37 @@
+import { useState } from "react";
 import { X, Trash2, AlertTriangle } from "lucide-react";
 
 export default function ModalExcluirFuncionario({
   aberto,
   fechar,
   funcionario,
+  onExcluir,
 }) {
+  const [excluindo, setExcluindo] = useState(false);
+  const [erro, setErro] = useState("");
+
   if (!aberto || !funcionario) return null;
+
+  const confirmarExclusao = async () => {
+    if (typeof onExcluir !== "function") {
+      setErro("Função de exclusão não configurada.");
+      return;
+    }
+
+    try {
+      setExcluindo(true);
+      setErro("");
+      await onExcluir(funcionario.id);
+    } catch (error) {
+      console.error("Erro ao excluir funcionário:", error);
+      setErro(
+        error.response?.data?.erro ||
+          "Não foi possível excluir o funcionário."
+      );
+    } finally {
+      setExcluindo(false);
+    }
+  };
 
   return (
     <div className="modal-overlay">
@@ -68,6 +94,8 @@ export default function ModalExcluirFuncionario({
           />
         </div>
 
+        {erro && <p>{erro}</p>}
+
         <div className="modal-footer">
           <button
             className="btn-cancelar"
@@ -76,8 +104,12 @@ export default function ModalExcluirFuncionario({
             Cancelar
           </button>
 
-          <button className="btn-excluir">
-            Confirmar Exclusão
+          <button
+            className="btn-excluir"
+            onClick={confirmarExclusao}
+            disabled={excluindo}
+          >
+            {excluindo ? "Excluindo..." : "Confirmar Exclusão"}
           </button>
         </div>
       </div>
