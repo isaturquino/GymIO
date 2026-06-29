@@ -1,7 +1,7 @@
 .gymio-sidebar {
   width: 200px;
   min-width: 200px;
-  height: 100vh;
+  min-height: 100vh;
   background: #1a1f2e;
   display: flex;
   flex-direction: column;

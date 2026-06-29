@@ -152,7 +152,6 @@ exports.login = async (req, res) => {
       });
     }
 
-
     // 🟢 DEPOIS cria o cookie
     res.cookie("token", data.session.access_token, {
       httpOnly: true,
@@ -208,6 +207,7 @@ exports.me = async (req, res) => {
 
     return res.json({
       user: {
+        ...req.user,
         ...pessoa,
         status: pessoa.funcionario?.[0]?.status || "Sem status",
       },

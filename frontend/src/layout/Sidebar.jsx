@@ -193,7 +193,7 @@ export default function Sidebar() {
                     }
                   />
                 ) : (
-                  <strong>{user?.email}</strong>
+                  <strong>{user?.email || "sememail@gmail.com"}</strong>
                 )}
               </div>
             </div>
@@ -216,7 +216,7 @@ export default function Sidebar() {
                     }
                   />
                 ) : (
-                  <strong>{user?.telefone}</strong>
+                  <strong>{user?.telefone || "(44) 99999-9999"}</strong>
                 )}
               </div>
             </div>
@@ -239,7 +239,7 @@ export default function Sidebar() {
                     }
                   />
                 ) : (
-                  <strong>{user?.cargo}</strong>
+                  <strong>{user?.cargo || "Administrador"}</strong>
                 )}
               </div>
             </div>

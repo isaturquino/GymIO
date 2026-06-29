@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../layout/Sidebar";
 import {
   Users,
@@ -62,7 +61,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="app-container">
+    <div className="dashboard-layout">
       <Sidebar />
 
       <main className="dashboard-page">
