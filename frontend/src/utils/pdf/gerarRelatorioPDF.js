@@ -36,12 +36,12 @@ export function gerarRelatorioPDF(dados) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
-    doc.text(item.label, x + 5, 77);
+    doc.text(String(item.label ?? ""), x + 5, 77);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(15, 23, 42);
-    doc.text(item.valor, x + 5, 86);
+    doc.text(String(item.valor ?? ""), x + 5, 86);
 
     x += 61;
   });
