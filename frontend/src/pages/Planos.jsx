@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Sidebar from "../layout/Sidebar";
 import "../styles/globals.css";
 import "../styles/alunos.css";
@@ -18,101 +18,48 @@ import {
   Star,
 } from "lucide-react";
 
-const planosMock = [
-  {
-    id: 1,
-    nome: "Plano Mensal",
-    descricao: "Acesso livre por 30 dias",
-    duracao: 30,
-    valor: 99.9,
-    alunosAtivos: 85,
-    popular: false,
-    status: "Ativo",
-  },
-  {
-    id: 2,
-    nome: "Plano Trimestral",
-    descricao: "Acesso livre por 90 dias",
-    duracao: 90,
-    valor: 269.9,
-    alunosAtivos: 92,
-    popular: true,
-    status: "Ativo",
-  },
-  {
-    id: 3,
-    nome: "Plano Semestral",
-    descricao: "Acesso livre por 180 dias",
-    duracao: 180,
-    valor: 499.9,
-    alunosAtivos: 45,
-    popular: false,
-    status: "Ativo",
-  },
-  {
-    id: 4,
-    nome: "Plano Anual",
-    descricao: "Acesso livre por 365 dias",
-    duracao: 365,
-    valor: 899.9,
-    alunosAtivos: 26,
-    popular: false,
-    status: "Ativo",
-  },
-];
-
-const matriculasMock = [
-  {
-    id: 1,
-    aluno: "João Silva",
-    plano: "Plano Mensal",
-    dataInicio: "2026-04-01",
-    dataFim: "2026-05-01",
-    valor: 99.9,
-    status: "Ativa",
-  },
-  {
-    id: 2,
-    aluno: "Maria Santos",
-    plano: "Plano Trimestral",
-    dataInicio: "2026-02-15",
-    dataFim: "2026-05-15",
-    valor: 269.9,
-    status: "Ativa",
-  },
-  {
-    id: 3,
-    aluno: "Pedro Oliveira",
-    plano: "Plano Anual",
-    dataInicio: "2025-06-01",
-    dataFim: "2026-06-01",
-    valor: 899.9,
-    status: "Vencendo",
-  },
-];
-
-const planoInicial = {
-  nome: "",
-  descricao: "",
-  duracao: "",
-  valor: "",
-  status: "Ativo",
-  popular: false,
-};
-
-const matriculaInicial = {
-  aluno: "",
-  plano: "",
-  dataInicio: "",
-  dataFim: "",
-  valor: "",
-  status: "Ativa",
-};
+import {
+  listarPlanos,
+  criarPlano,
+  atualizarPlano,
+  deletarPlano
+} from "../services/planosService";
 
 export default function Planos() {
-  const [planos, setPlanos] = useState(planosMock);
-  const [matriculas, setMatriculas] = useState(matriculasMock);
+  const planoInicial = {
+    nome: "",
+    descricao: "",
+    duracao: "",
+    valor: "",
+    status: "Ativo",
+    popular: false,
+  };
+
+  const matriculaInicial = {
+    aluno: "",
+    plano: "",
+    dataInicio: "",
+    dataFim: "",
+    valor: "",
+    status: "Ativa",
+  };
+
+  const [planos, setPlanos] = useState([]);
+  const [matriculas, setMatriculas] = useState([]);
   const [busca, setBusca] = useState("");
+
+  useEffect(() => {
+    async function loadPlanos() {
+      try {
+        const data = await listarPlanos();
+        setPlanos(data);
+      } catch (err) {
+        console.error("Erro ao carregar planos:", err);
+      }
+    }
+
+    loadPlanos();
+  }, []);
 
   const [modalPlanoAberto, setModalPlanoAberto] = useState(false);
   const [planoEditando, setPlanoEditando] = useState(null);
@@ -176,36 +123,34 @@ export default function Planos() {
     setModalPlanoAberto(true);
   }
 
-  function salvarPlano() {
+  async function salvarPlano() {
+  try {
+    const payload = {
+      nome_plano: dadosPlano.nome,
+      descricao: dadosPlano.descricao,
+      valor: Number(dadosPlano.valor),
+      duracao_meses: Number(dadosPlano.duracao),
+    };
+
     if (planoEditando) {
+      const atualizado = await atualizarPlano(planoEditando.id, payload);
+
       setPlanos((lista) =>
         lista.map((p) =>
-          p.id === planoEditando.id
-            ? {
-                ...dadosPlano,
-                id: planoEditando.id,
-                valor: Number(dadosPlano.valor),
-                duracao: Number(dadosPlano.duracao),
-                alunosAtivos: planoEditando.alunosAtivos,
-              }
-            : p
+          p.id === planoEditando.id ? atualizado : p
         )
       );
     } else {
-      setPlanos((lista) => [
-        ...lista,
-        {
-          ...dadosPlano,
-          id: Date.now(),
-          valor: Number(dadosPlano.valor),
-          duracao: Number(dadosPlano.duracao),
-          alunosAtivos: 0,
-        },
-      ]);
+      const criado = await criarPlano(payload);
+
+      setPlanos((lista) => [...lista, criado]);
     }
 
     setModalPlanoAberto(false);
+  } catch (err) {
+    console.error("Erro ao salvar plano:", err);
   }
+}
 
   function abrirNovaMatricula() {
     setMatriculaEditando(null);
@@ -251,14 +196,20 @@ export default function Planos() {
     setModalExcluirAberto(true);
   }
 
-  function executarExclusao() {
-    if (!itemExcluir) return;
+  async function executarExclusao() {
+  if (!itemExcluir) return;
 
+  try {
     if (itemExcluir.tipo === "plano") {
-      setPlanos((lista) => lista.filter((p) => p.id !== itemExcluir.item.id));
+      await deletarPlano(itemExcluir.item.id);
+
+      setPlanos((lista) =>
+        lista.filter((p) => p.id !== itemExcluir.item.id)
+      );
     }
 
     if (itemExcluir.tipo === "matricula") {
+      // se você NÃO tem backend ainda, mantém local
       setMatriculas((lista) =>
         lista.filter((m) => m.id !== itemExcluir.item.id)
       );
@@ -266,7 +217,10 @@ export default function Planos() {
 
     setModalExcluirAberto(false);
     setItemExcluir(null);
+  } catch (err) {
+    console.error("Erro ao excluir:", err);
   }
+}
 
   return (
     <div className="alunos-layout">
