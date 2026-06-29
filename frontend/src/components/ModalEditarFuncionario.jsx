@@ -1,11 +1,66 @@
+import { useEffect, useState } from "react";
 import { X, Pencil } from "lucide-react";
 
 export default function ModalEditarFuncionario({
   aberto,
   fechar,
   funcionario,
+  cargos = [],
+  onSalvar,
 }) {
+  const [dados, setDados] = useState({
+    cargo_id: "",
+    status: "Ativo",
+    permissaoFinanceira: "",
+  });
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    if (!funcionario) return;
+
+    setDados({
+      cargo_id: funcionario.cargo_id || "",
+      status: funcionario.status || "Ativo",
+      permissaoFinanceira:
+        funcionario.ctps === "Sim" || funcionario.ctps === "Não"
+          ? funcionario.ctps
+          : "",
+    });
+    setErro("");
+  }, [funcionario]);
+
   if (!aberto || !funcionario) return null;
+
+  const atualizarCampo = (campo, valor) => {
+    setDados((dadosAtuais) => ({
+      ...dadosAtuais,
+      [campo]: valor,
+    }));
+  };
+
+  const enviarFormulario = async (event) => {
+    event.preventDefault();
+
+    if (typeof onSalvar !== "function") {
+      setErro("Função de edição não configurada.");
+      return;
+    }
+
+    try {
+      setSalvando(true);
+      setErro("");
+      await onSalvar(funcionario.id, dados);
+    } catch (error) {
+      console.error("Erro ao editar funcionário:", error);
+      setErro(
+        error.response?.data?.erro ||
+          "Não foi possível editar o funcionário."
+      );
+    } finally {
+      setSalvando(false);
+    }
+  };
 
   return (
     <div className="modal-overlay">
@@ -27,38 +82,45 @@ export default function ModalEditarFuncionario({
           </button>
         </div>
 
-        <form className="modal-form">
+        <form className="modal-form" onSubmit={enviarFormulario}>
           <div className="form-group">
             <label>Nome Completo *</label>
-            <input defaultValue={funcionario.nome} />
+            <input value={funcionario.nome || ""} readOnly />
           </div>
 
           <div className="grid-2">
             <div className="form-group">
               <label>E-mail *</label>
-              <input defaultValue={funcionario.email} />
+              <input value={funcionario.email || ""} readOnly />
             </div>
 
             <div className="form-group">
               <label>Telefone *</label>
-              <input defaultValue={funcionario.telefone} />
+              <input value={funcionario.telefone || ""} readOnly />
             </div>
           </div>
 
           <div className="grid-2">
             <div className="form-group">
               <label>CPF *</label>
-              <input defaultValue="123.456.789-00" />
+              <input value={funcionario.cpf || ""} readOnly />
             </div>
 
             <div className="form-group">
               <label>Cargo *</label>
-              <select defaultValue={funcionario.cargo}>
-                <option>Recepcionista</option>
-                <option>Instrutor</option>
-                <option>Personal Trainer</option>
-                <option>Gerente</option>
-                <option>Limpeza</option>
+              <select
+                value={dados.cargo_id}
+                onChange={(event) =>
+                  atualizarCampo("cargo_id", event.target.value)
+                }
+                required
+              >
+                <option value="">Selecione o cargo</option>
+                {cargos.map((cargo) => (
+                  <option key={cargo.id} value={cargo.id}>
+                    {cargo.nome_cargo}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -67,29 +129,38 @@ export default function ModalEditarFuncionario({
             <div className="form-group">
               <label>Status *</label>
 
-              <select defaultValue={funcionario.status}>
-                <option>Ativo</option>
-                <option>Inativo</option>
+              <select
+                value={dados.status}
+                onChange={(event) =>
+                  atualizarCampo("status", event.target.value)
+                }
+                required
+              >
+                <option value="Ativo">Ativo</option>
+                <option value="Inativo">Inativo</option>
               </select>
             </div>
 
             <div className="form-group">
               <label>Permissão Financeira</label>
 
-              <select defaultValue="Sim">
-                <option>Sim</option>
-                <option>Não</option>
+              <select
+                value={dados.permissaoFinanceira}
+                onChange={(event) =>
+                  atualizarCampo(
+                    "permissaoFinanceira",
+                    event.target.value
+                  )
+                }
+              >
+                <option value="">Selecione</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
               </select>
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Observações</label>
-
-            <textarea rows="3">
-Responsável pelo atendimento na recepção da academia.
-            </textarea>
-          </div>
+          {erro && <p>{erro}</p>}
 
           <div className="modal-footer">
             <button
@@ -103,8 +174,9 @@ Responsável pelo atendimento na recepção da academia.
             <button
               type="submit"
               className="btn-salvar"
+              disabled={salvando}
             >
-              Salvar Alterações
+              {salvando ? "Salvando..." : "Salvar Alterações"}
             </button>
           </div>
         </form>
