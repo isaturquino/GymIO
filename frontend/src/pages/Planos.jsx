@@ -94,16 +94,16 @@ export default function Planos() {
   const [itemExcluir, setItemExcluir] = useState(null);
 
   const matriculasFiltradas = useMemo(() => {
-    return matriculas.filter((item) => {
-      const termo = busca.toLowerCase();
+  const termo = busca.toLowerCase();
 
-      return (
-        item.aluno.toLowerCase().includes(termo) ||
-        item.plano.toLowerCase().includes(termo) ||
-        item.status.toLowerCase().includes(termo)
-      );
-    });
-  }, [busca, matriculas]);
+  return matriculas.filter((item) => {
+    return (
+      (item.aluno ?? "").toLowerCase().includes(termo) ||
+      (item.plano ?? "").toLowerCase().includes(termo) ||
+      (item.status ?? "").toLowerCase().includes(termo)
+    );
+  });
+}, [busca, matriculas]);
 
   const totalPlanos = planos.length;
   const matriculasAtivas = matriculas.filter((m) => m.status === "Ativa").length;

@@ -15,7 +15,7 @@ const dashboardRoutes = require("./routes/dashboard.routes");
 const relatoriosRoutes = require("./routes/relatorios.routes");
 
 
-const cookieParser = require("cookie-parser");
+
 // para rodar o swagger da documentação
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
