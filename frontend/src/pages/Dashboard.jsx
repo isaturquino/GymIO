@@ -192,7 +192,6 @@ export default function Dashboard() {
         <section className="recent-activities">
           <div className="activities-header">
             <h2>Atividades Recentes</h2>
-            <button className="btn-see-all">Ver todas</button>
           </div>
 
           <div className="activities-list">
