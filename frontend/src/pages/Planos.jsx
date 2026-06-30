@@ -49,17 +49,38 @@ export default function Planos() {
   const [busca, setBusca] = useState("");
 
   useEffect(() => {
-    async function loadPlanos() {
-      try {
-        const data = await listarPlanos();
-        setPlanos(data);
-      } catch (err) {
-        console.error("Erro ao carregar planos:", err);
-      }
+
+  async function carregarDados() {
+
+    try {
+
+      const planosData = await listarPlanos();
+
+      setPlanos(planosData);
+
+      const response = await fetch(
+        "http://localhost:3002/api/planos/matriculas"
+      );
+
+      const matriculasData =
+        await response.json();
+
+      setMatriculas(matriculasData);
+
+    } catch(err){
+
+      console.error(
+        "Erro ao carregar dados:",
+        err
+      );
+
     }
 
-    loadPlanos();
-  }, []);
+  }
+
+  carregarDados();
+
+}, []);
 
   const [modalPlanoAberto, setModalPlanoAberto] = useState(false);
   const [planoEditando, setPlanoEditando] = useState(null);
@@ -117,11 +138,22 @@ export default function Planos() {
     setModalPlanoAberto(true);
   }
 
-  function abrirEditarPlano(plano) {
-    setPlanoEditando(plano);
-    setDadosPlano(plano);
-    setModalPlanoAberto(true);
-  }
+ function abrirEditarPlano(plano) {
+
+  setPlanoEditando(plano);
+
+  setDadosPlano({
+    nome: plano.nome_plano,
+    descricao: plano.descricao,
+    duracao: plano.duracao_meses,
+    valor: plano.valor,
+    status: "Ativo",
+    popular: plano.popular || false
+  });
+
+  setModalPlanoAberto(true);
+
+}
 
   async function salvarPlano() {
   try {
@@ -328,17 +360,19 @@ export default function Planos() {
                   </div>
                 </div>
 
-                <h3>{plano.nome}</h3>
+                <h3>{plano.nome_plano}</h3>
                 <p>{plano.descricao}</p>
 
                 <div className="plano-preco">
                   {formatarMoeda(plano.valor)}
-                  <span>/{plano.duracao} dias</span>
+                  <span>/{plano.duracao_meses} meses</span>
                 </div>
 
                 <div className="plano-info">
-                  <span>{plano.alunosAtivos} alunos ativos</span>
-                  <span className="badge status-ativo">{plano.status}</span>
+                  <span>Plano ativo</span>
+                  <span className="badge status-ativo">
+   Ativo
+</span>
                 </div>
               </article>
             ))}
@@ -490,7 +524,7 @@ export default function Planos() {
               </div>
 
               <div className="input-group">
-                <label>Duração em dias *</label>
+                <label>Duração em meses *</label>
                 <input
                   type="number"
                   value={dadosPlano.duracao}
@@ -602,9 +636,12 @@ export default function Planos() {
                 >
                   <option value="">Selecione</option>
                   {planos.map((plano) => (
-                    <option key={plano.id} value={plano.nome}>
-                      {plano.nome}
-                    </option>
+                    <option
+  key={plano.id}
+  value={plano.nome_plano}
+>
+   {plano.nome_plano}
+</option>
                   ))}
                 </select>
               </div>
