@@ -1,6 +1,13 @@
 import "../styles/equipe.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../layout/Sidebar";
+import {
+  atualizarFuncionario,
+  buscarCargos,
+  criarFuncionario,
+  excluirFuncionario,
+  listarFuncionarios,
+} from "../services/equipeService";
 
 import ModalNovoFuncionario from "../components/ModalNovoFuncionario";
 import ModalEditarFuncionario from "../components/ModalEditarFuncionario";
@@ -18,45 +25,11 @@ import {
   Clock,
 } from "lucide-react";
 
-const funcionarios = [
-  {
-    nome: "Carlos Silva",
-    email: "carlos@gymio.com",
-    cargo: "Instrutor",
-    telefone: "(11) 99999-1111",
-    status: "Ativo",
-  },
-  {
-    nome: "Maria Santos",
-    email: "maria@gymio.com",
-    cargo: "Recepcionista",
-    telefone: "(11) 99999-2222",
-    status: "Ativo",
-  },
-  {
-    nome: "João Oliveira",
-    email: "joao@gymio.com",
-    cargo: "Personal Trainer",
-    telefone: "(11) 99999-3333",
-    status: "Ativo",
-  },
-  {
-    nome: "Ana Costa",
-    email: "ana@gymio.com",
-    cargo: "Gerente",
-    telefone: "(11) 99999-4444",
-    status: "Ativo",
-  },
-  {
-    nome: "Pedro Lima",
-    email: "pedro@gymio.com",
-    cargo: "Limpeza",
-    telefone: "(11) 99999-5555",
-    status: "Inativo",
-  },
-];
-
 export default function Equipe() {
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [cargos, setCargos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
   const [modalNovo, setModalNovo] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [modalExcluir, setModalExcluir] = useState(false);
@@ -64,6 +37,52 @@ export default function Equipe() {
 
   const [funcionarioSelecionado, setFuncionarioSelecionado] =
     useState(null);
+
+  async function carregarFuncionarios() {
+    const dadosFuncionarios = await listarFuncionarios();
+    setFuncionarios(dadosFuncionarios);
+  }
+
+  useEffect(() => {
+    async function carregarDados() {
+      try {
+        setCarregando(true);
+        setErro("");
+        const [, dadosCargos] = await Promise.all([
+          carregarFuncionarios(),
+          buscarCargos(),
+        ]);
+        setCargos(dadosCargos);
+      } catch (error) {
+        console.error("Erro ao carregar dados da equipe:", error);
+        setFuncionarios([]);
+        setCargos([]);
+        setErro("Não foi possível carregar os dados da equipe.");
+      } finally {
+        setCarregando(false);
+      }
+    }
+
+    carregarDados();
+  }, []);
+
+  async function cadastrarFuncionario(dados) {
+    await criarFuncionario(dados);
+    await carregarFuncionarios();
+    setModalNovo(false);
+  }
+
+  async function salvarEdicaoFuncionario(id, dados) {
+    await atualizarFuncionario(id, dados);
+    await carregarFuncionarios();
+    setModalEditar(false);
+  }
+
+  async function confirmarExclusaoFuncionario(id) {
+    await excluirFuncionario(id);
+    await carregarFuncionarios();
+    setModalExcluir(false);
+  }
 
   return (
     <div className="equipe-layout">
@@ -160,8 +179,26 @@ export default function Equipe() {
               </thead>
 
               <tbody>
-                {funcionarios.map((f, i) => (
-                  <tr key={i}>
+                {carregando && (
+                  <tr>
+                    <td colSpan="5">Carregando funcionários...</td>
+                  </tr>
+                )}
+
+                {!carregando && erro && (
+                  <tr>
+                    <td colSpan="5">{erro}</td>
+                  </tr>
+                )}
+
+                {!carregando && !erro && funcionarios.length === 0 && (
+                  <tr>
+                    <td colSpan="5">Nenhum funcionário encontrado.</td>
+                  </tr>
+                )}
+
+                {!carregando && !erro && funcionarios.map((f) => (
+                  <tr key={f.id}>
                     <td>
                       <div className="funcionario">
                         <strong>{f.nome}</strong>
@@ -245,18 +282,23 @@ export default function Equipe() {
       <ModalNovoFuncionario
         aberto={modalNovo}
         fechar={() => setModalNovo(false)}
+        cargos={cargos}
+        onSalvar={cadastrarFuncionario}
       />
 
       <ModalEditarFuncionario
         aberto={modalEditar}
         fechar={() => setModalEditar(false)}
         funcionario={funcionarioSelecionado}
+        cargos={cargos}
+        onSalvar={salvarEdicaoFuncionario}
       />
 
       <ModalExcluirFuncionario
         aberto={modalExcluir}
         fechar={() => setModalExcluir(false)}
         funcionario={funcionarioSelecionado}
+        onExcluir={confirmarExclusaoFuncionario}
       />
 
       <ModalDetalhesFuncionario

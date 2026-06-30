@@ -1,5 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../layout/Sidebar";
+import {
+  listarAcessos,
+  registrarEntrada,
+  registrarSaida,
+} from "../services/acessoService";
 import "../styles/controleAcesso.css";
 
 import {
@@ -10,77 +15,152 @@ import {
   Search,
 } from "lucide-react";
 
+function isDataHoje(valor) {
+  if (!valor) {
+    return false;
+  }
+
+  const data = new Date(valor);
+
+  if (Number.isNaN(data.getTime())) {
+    return false;
+  }
+
+  const hoje = new Date();
+
+  return (
+    data.getFullYear() === hoje.getFullYear() &&
+    data.getMonth() === hoje.getMonth() &&
+    data.getDate() === hoje.getDate()
+  );
+}
+
+function formatarDataHora(valor) {
+  if (!valor) {
+    return "-";
+  }
+
+  const data = new Date(valor);
+
+  if (Number.isNaN(data.getTime())) {
+    return "-";
+  }
+
+  const preencher = (numero) => String(numero).padStart(2, "0");
+  const horario = [
+    preencher(data.getHours()),
+    preencher(data.getMinutes()),
+    preencher(data.getSeconds()),
+  ].join(":");
+  const dataFormatada = [
+    preencher(data.getDate()),
+    preencher(data.getMonth() + 1),
+    data.getFullYear(),
+  ].join("/");
+
+  return `${horario} ${dataFormatada}`;
+}
+
 export default function ControleAcesso() {
   const [busca, setBusca] = useState("");
   const [filtroCard, setFiltroCard] = useState("todos");
+  const [acessos, setAcessos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+  const [processando, setProcessando] = useState(false);
+  const [mensagem, setMensagem] = useState("");
+  const [erroAcao, setErroAcao] = useState("");
 
-  const acessos = [
-    {
-      id: 1,
-      nome: "Maria Silva",
-      entrada: "08:15",
-      saida: "09:45",
-      status: "Liberado",
-    },
-    {
-      id: 2,
-      nome: "João Santos",
-      entrada: "09:30",
-      saida: "11:00",
-      status: "Liberado",
-    },
-    {
-      id: 3,
-      nome: "Ana Costa",
-      entrada: "10:00",
-      saida: "---",
-      status: "Na academia",
-    },
-    {
-      id: 4,
-      nome: "Pedro Lima",
-      entrada: "10:15",
-      saida: "---",
-      status: "Bloqueado",
-    },
-    {
-      id: 5,
-      nome: "Carlos Souza",
-      entrada: "07:00",
-      saida: "08:30",
-      status: "Liberado",
-    },
-    {
-      id: 6,
-      nome: "Lucia Ferreira",
-      entrada: "11:30",
-      saida: "---",
-      status: "Na academia",
-    },
-  ];
+  const totalNaAcademia = acessos.filter(
+    (acesso) => acesso.status === "Na academia"
+  ).length;
+  const totalEntradasHoje = acessos.filter(
+    (acesso) =>
+      acesso.tipo_acesso === "entrada" &&
+      isDataHoje(acesso.data_hora_acesso)
+  ).length;
+  const totalSaidasHoje = acessos.filter(
+    (acesso) => acesso.hora_saida && isDataHoje(acesso.hora_saida)
+  ).length;
+  const totalBloqueadosHoje = acessos.filter(
+    (acesso) =>
+      acesso.tipo_acesso === "bloqueado" &&
+      isDataHoje(acesso.data_hora_acesso)
+  ).length;
 
-  const dadosFiltrados = acessos.filter((item) => {
-    const correspondeBusca = item.nome
-      .toLowerCase()
-      .includes(busca.toLowerCase());
+  async function carregarAcessos() {
+    try {
+      setCarregando(true);
+      setErro("");
 
-    switch (filtroCard) {
-      case "academia":
-        return correspondeBusca && item.status === "Na academia";
-
-      case "entrada":
-        return correspondeBusca && item.entrada !== "---";
-
-      case "saida":
-        return correspondeBusca && item.saida !== "---";
-
-      case "bloqueado":
-        return correspondeBusca && item.status === "Bloqueado";
-
-      default:
-        return correspondeBusca;
+      const dados = await listarAcessos();
+      setAcessos(dados);
+    } catch (error) {
+      setErro(
+        error.response?.data?.erro ||
+        error.message ||
+        "Erro ao carregar acessos."
+      );
+    } finally {
+      setCarregando(false);
     }
-  });
+  }
+
+  useEffect(() => {
+    carregarAcessos();
+  }, []);
+
+  async function handleEntrada() {
+    if (!busca.trim()) {
+      setMensagem("");
+      setErroAcao("Informe um CPF.");
+      return;
+    }
+
+    try {
+      setProcessando(true);
+      setMensagem("");
+      setErroAcao("");
+
+      const resultado = await registrarEntrada(busca);
+      setMensagem(resultado.mensagem || "Entrada registrada com sucesso.");
+    } catch (error) {
+      setErroAcao(
+        error.response?.data?.erro ||
+        error.message ||
+        "Erro ao registrar entrada."
+      );
+    } finally {
+      await carregarAcessos();
+      setProcessando(false);
+    }
+  }
+
+  async function handleSaida() {
+    if (!busca.trim()) {
+      setMensagem("");
+      setErroAcao("Informe um CPF.");
+      return;
+    }
+
+    try {
+      setProcessando(true);
+      setMensagem("");
+      setErroAcao("");
+
+      const resultado = await registrarSaida(busca);
+      setMensagem(resultado.mensagem || "Saída registrada com sucesso.");
+    } catch (error) {
+      setErroAcao(
+        error.response?.data?.erro ||
+        error.message ||
+        "Erro ao registrar saída."
+      );
+    } finally {
+      await carregarAcessos();
+      setProcessando(false);
+    }
+  }
 
   function iniciais(nome) {
     return nome
@@ -128,7 +208,7 @@ export default function ControleAcesso() {
           >
             <div>
               <span>Na Academia</span>
-              <strong>24</strong>
+              <strong>{totalNaAcademia}</strong>
               <small>Alunos presentes</small>
             </div>
 
@@ -145,7 +225,7 @@ export default function ControleAcesso() {
           >
             <div>
               <span>Entradas Hoje</span>
-              <strong>87</strong>
+              <strong>{totalEntradasHoje}</strong>
               <small>Total registrado</small>
             </div>
 
@@ -162,7 +242,7 @@ export default function ControleAcesso() {
           >
             <div>
               <span>Saídas Hoje</span>
-              <strong>63</strong>
+              <strong>{totalSaidasHoje}</strong>
               <small>Total registrado</small>
             </div>
 
@@ -179,7 +259,7 @@ export default function ControleAcesso() {
           >
             <div>
               <span>Bloqueados</span>
-              <strong>3</strong>
+              <strong>{totalBloqueadosHoje}</strong>
               <small>Tentativas negadas</small>
             </div>
 
@@ -204,17 +284,30 @@ export default function ControleAcesso() {
             <input
               type="text"
               placeholder="Digite o CPF ou código do cartão..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
             />
 
-            <button className="btn-entrada">
+            <button
+              className="btn-entrada"
+              onClick={handleEntrada}
+              disabled={processando}
+            >
               Entrada
             </button>
 
-            <button className="btn-saida">
+            <button
+              className="btn-saida"
+              onClick={handleSaida}
+              disabled={processando}
+            >
               Saída
             </button>
 
           </div>
+
+          {mensagem && <p>{mensagem}</p>}
+          {erroAcao && <p>{erroAcao}</p>}
 
         </section>
 
@@ -265,39 +358,53 @@ export default function ControleAcesso() {
 
             <tbody>
 
-              {dadosFiltrados.map((aluno) => (
-                <tr key={aluno.id}>
-
-                  <td>
-                    <div className="aluno-cell">
-
-                      <div className="avatar">
-                        {iniciais(aluno.nome)}
-                      </div>
-
-                      <span>{aluno.nome}</span>
-
-                    </div>
-                  </td>
-
-                  <td>{aluno.entrada}</td>
-
-                  <td>{aluno.saida}</td>
-
-                  <td>
-
-                    <span
-                      className={`status-badge ${classeStatus(
-                        aluno.status
-                      )}`}
-                    >
-                      {aluno.status}
-                    </span>
-
-                  </td>
-
+              {carregando ? (
+                <tr>
+                  <td colSpan="4">Carregando...</td>
                 </tr>
-              ))}
+              ) : erro ? (
+                <tr>
+                  <td colSpan="4">{erro}</td>
+                </tr>
+              ) : acessos.length === 0 ? (
+                <tr>
+                  <td colSpan="4">Nenhum acesso encontrado.</td>
+                </tr>
+              ) : (
+                acessos.map((acesso) => (
+                  <tr key={acesso.id}>
+
+                    <td>
+                      <div className="aluno-cell">
+
+                        <div className="avatar">
+                          {iniciais(acesso.aluno)}
+                        </div>
+
+                        <span>{acesso.aluno}</span>
+
+                      </div>
+                    </td>
+
+                    <td>{formatarDataHora(acesso.hora_entrada)}</td>
+
+                    <td>{formatarDataHora(acesso.hora_saida)}</td>
+
+                    <td>
+
+                      <span
+                        className={`status-badge ${classeStatus(
+                          acesso.status
+                        )}`}
+                      >
+                        {acesso.status}
+                      </span>
+
+                    </td>
+
+                  </tr>
+                ))
+              )}
 
             </tbody>
 
