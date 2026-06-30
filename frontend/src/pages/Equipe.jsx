@@ -94,67 +94,59 @@ export default function Equipe() {
             <h1>Equipe</h1>
             <p>Gestão de colaboradores da academia</p>
           </div>
-
-          <button
-            className="btn-primary"
-            onClick={() => setModalNovo(true)}
-          >
-            <UserPlus size={16} />
-            Novo Funcionário
-          </button>
         </header>
 
         <section className="cards">
-  <div className="card">
-    <div className="card-info">
-      <span>Total de Funcionários</span>
-      <strong>{funcionarios.length}</strong>
-    </div>
+          <div className="card">
+            <div className="card-info">
+              <span>Total de Funcionários</span>
+              <strong>{funcionarios.length}</strong>
+            </div>
 
-    <div className="icon blue">
-      <Users size={18} />
-    </div>
-  </div>
+            <div className="icon blue">
+              <Users size={18} />
+            </div>
+          </div>
 
-  <div className="card">
-    <div className="card-info">
-      <span>Ativos</span>
-      <strong>
-        {
-          funcionarios.filter(
-            (f) => f.status === "Ativo"
-          ).length
-        }
-      </strong>
-    </div>
+          <div className="card">
+            <div className="card-info">
+              <span>Ativos</span>
+              <strong>
+                {
+                  funcionarios.filter(
+                    (f) => f.status === "Ativo"
+                  ).length
+                }
+              </strong>
+            </div>
 
-    <div className="icon green">
-      <Users size={18} />
-    </div>
-  </div>
+            <div className="icon green">
+              <Users size={18} />
+            </div>
+          </div>
 
-  <div className="card">
-    <div className="card-info">
-      <span>Folha Mensal</span>
-      <strong>R$ 28.500</strong>
-    </div>
+          <div className="card">
+            <div className="card-info">
+              <span>Folha Mensal</span>
+              <strong>R$ 28.500</strong>
+            </div>
 
-    <div className="icon blue">
-      <DollarSign size={18} />
-    </div>
-  </div>
+            <div className="icon blue">
+              <DollarSign size={18} />
+            </div>
+          </div>
 
-  <div className="card">
-    <div className="card-info">
-      <span>Horas Hoje</span>
-      <strong>48h</strong>
-    </div>
+          <div className="card">
+            <div className="card-info">
+              <span>Horas Hoje</span>
+              <strong>48h</strong>
+            </div>
 
-    <div className="icon blue">
-      <Clock size={18} />
-    </div>
-  </div>
-</section>
+            <div className="icon blue">
+              <Clock size={18} />
+            </div>
+          </div>
+        </section>
 
         <section className="content">
           <div className="table-box">
@@ -258,10 +250,7 @@ export default function Equipe() {
           <div className="side-info">
             <h3>Acessos Rápidos</h3>
 
-            <p>
-              Clique em "Novo Funcionário" para cadastrar
-              um novo colaborador com acesso ao sistema.
-            </p>
+           
 
             <div className="box-info">
               <strong>Campos de Login</strong>
