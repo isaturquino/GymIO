@@ -207,6 +207,7 @@ exports.me = async (req, res) => {
 
     return res.json({
       user: {
+        ...req.user,
         ...pessoa,
         status: pessoa.funcionario?.[0]?.status || "Sem status",
       },
@@ -214,4 +215,5 @@ exports.me = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ erro: err.message });
   }
+
 };

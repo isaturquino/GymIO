@@ -32,12 +32,19 @@ const alunoInicial = {
   status: "Ativo",
   matricula: "",
   senha: "",
+  isAluno: true,
+  isFuncionario: false,
+  dataMatricula: "",
+  cargo_id: "",
+  dataAdmissao: "",
+  salario: "",
 };
 
 export default function Alunos() {
   const [alunos, setAlunos] = useState([]);
   const [planos, setPlanos] = useState([]);
   const [busca, setBusca] = useState("");
+  const [cargos, setCargos] = useState([]);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -61,18 +68,21 @@ export default function Alunos() {
 
   async function carregarDados() {
     try {
-      const [alunosRes, totalRes, planosRes] = await Promise.all([
+      const [alunosRes, totalRes, planosRes, cargosRes] = await Promise.all([
         fetch(`${API}?tipo=aluno`),
         fetch(`${API}/total-alunos`),
         fetch(`${API}/planos`),
+        fetch(`${API}/cargos`),
       ]);
 
       const alunosData = await alunosRes.json();
       const totalData = await totalRes.json();
       const planosData = await planosRes.json();
+      const cargosData = await cargosRes.json();
 
       setAlunos(Array.isArray(alunosData) ? alunosData : []);
       setPlanos(Array.isArray(planosData) ? planosData : []);
+      setCargos(Array.isArray(cargosData) ? cargosData : []);
 
       setStats((prev) => ({
         ...prev,
@@ -82,6 +92,7 @@ export default function Alunos() {
       console.error("Erro ao carregar dados:", err);
       setAlunos([]);
       setPlanos([]);
+      setCargos([]);
     }
   }
 
@@ -144,6 +155,7 @@ export default function Alunos() {
       }
 
       alert("Já existe uma pessoa cadastrada com este CPF.");
+
     }
   }
 
@@ -179,6 +191,7 @@ export default function Alunos() {
 
       const data = await res.json();
 
+
       if (!res.ok) {
         console.error(data);
         alert("Erro ao editar aluno");
@@ -208,9 +221,11 @@ export default function Alunos() {
       });
 
       if (!res.ok) {
+
         const erro = await res.json();
         console.error("Erro ao excluir aluno:", erro);
         alert(erro.erro || "Erro ao excluir aluno");
+
         return;
       }
 
@@ -242,6 +257,7 @@ export default function Alunos() {
       .toUpperCase();
   }
 
+
   return (
     <div className="alunos-layout">
       <Sidebar />
@@ -253,13 +269,7 @@ export default function Alunos() {
             <p>Cadastro e controle dos alunos da academia</p>
           </div>
 
-          <button
-            className="btn btn--primary"
-            onClick={() => setModalAdicionarAberto(true)}
-          >
-            <Plus size={17} />
-            Novo Aluno
-          </button>
+      
         </header>
 
         <section className="stats-grid">
@@ -412,7 +422,9 @@ export default function Alunos() {
                       </span>
                     </td>
 
+
                     <td>{formatarData(aluno.matricula)}</td>
+
 
                     <td>
                       <div className="password-cell">
@@ -471,8 +483,9 @@ export default function Alunos() {
           onSave={salvarNovoAluno}
           textoBotao="Salvar"
           mostrarPlano={true}
-          mostrarCargo={false}
+          mostrarCargo={true}
           planos={planos}
+          cargos={cargos}
         />
       )}
 
@@ -601,11 +614,13 @@ export default function Alunos() {
               <div className="input-group">
                 <label>Status *</label>
                 <select
+
                   value={alunoEditando.status_assinatura || alunoEditando.status || ""}
                   onChange={(e) =>
                     setAlunoEditando({
                       ...alunoEditando,
                       status_assinatura: e.target.value,
+
                     })
                   }
                 >
@@ -678,13 +693,16 @@ export default function Alunos() {
               <div>
                 <span>CPF: {alunoExcluindo.cpf}</span>
                 <span>Plano: {alunoExcluindo.plano || "-"}</span>
+
                 <span>Status: {alunoExcluindo.status_assinatura || "-"}</span>
+
                 <span>Matrícula: {alunoExcluindo.matricula}</span>
                 <span>
                   Nascimento:{" "}
                   {formatarData(
                     alunoExcluindo.dataNascimento ||
                     alunoExcluindo.data_nascimento
+
                   )}
                 </span>
                 <span>E-mail: {alunoExcluindo.email}</span>

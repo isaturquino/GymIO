@@ -2,8 +2,8 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./styles/globals.css";
 
+import Pessoa from "./pages/Pessoa"
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Alunos from "./pages/Alunos";
 import Planos from "./pages/Planos";
@@ -21,7 +21,6 @@ function App() {
 
         {/* Auth */}
         <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* App */}
         <Route path="/dashboard" element={
@@ -32,6 +31,11 @@ function App() {
         <Route path="/alunos" element={
           <ProtectedRoute>
             <Alunos />
+          </ProtectedRoute>
+        } />
+          <Route path="/pessoas" element={
+          <ProtectedRoute>
+            <Pessoa />
           </ProtectedRoute>
         } />
         <Route path="/planos" element={

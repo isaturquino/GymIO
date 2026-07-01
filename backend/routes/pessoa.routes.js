@@ -3,14 +3,14 @@ const router = express.Router();
 const controller = require("../controllers/pessoa.controller");
 
 // =========================
-// GET
+// GET EXTRAS
 // =========================
-
 router.get("/total-alunos", controller.getTotalAlunos);
 router.get("/planos", controller.getPlanos);
+router.get("/cargos", controller.getCargos);
 
 // =========================
-// CRUD
+// CRUD PESSOA
 // =========================
 router.get("/", controller.getPessoas);
 router.post("/", controller.createPessoa);

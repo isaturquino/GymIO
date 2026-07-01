@@ -1,11 +1,11 @@
-import pg from "pg";
-import dotenv from "dotenv";
+const pg = require("pg");
+const dotenv = require("dotenv");
 
 dotenv.config();
 
 const { Pool } = pg;
 
-export const pool = new Pool({
+const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -20,3 +20,7 @@ pool.connect()
   .catch((err) => {
     console.error("Erro ao conectar no banco:", err);
   });
+
+module.exports = {
+  pool
+};

@@ -6,20 +6,24 @@ import authService from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
-  const { login, checkAuth } = useAuth();
+  const { checkAuth } = useAuth();
+
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [showSenha, setShowSenha] = useState(false);
 
+  // Modal esqueceu senha
+  const [showModal, setShowModal] = useState(false);
+  const [emailRecuperacao, setEmailRecuperacao] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const data = await authService.login({ email, senha });
-
-      await login();
+      await authService.login({ email, senha });
 
       await checkAuth();
 
@@ -29,86 +33,140 @@ export default function Login() {
     }
   };
 
-  
-
-
   return (
-    <div className="auth-container">
+  <div className="auth-container">
 
-      {/* ESQUERDA */}
-      <div className="auth-left">
-        <div className="auth-logo">GymIO</div>
+    {/* ESQUERDA */}
+    <div className="auth-left">
+      <div className="auth-logo">GymIO</div>
 
-        <h1>Gerencie sua academia com inteligência</h1>
-        <p>
-          Sistema completo para controle de alunos, financeiro, acesso e equipamentos.
-        </p>
+      <h1>Gerencie sua academia com inteligência</h1>
+      <p>
+        Sistema completo para controle de alunos, financeiro, acesso e
+        equipamentos.
+      </p>
 
-        <div className="auth-stats">
-          <div className="auth-card-stat">
-            <strong>+500</strong><br />Academias
-          </div>
-          <div className="auth-card-stat">
-            <strong>+50k</strong><br />Alunos
-          </div>
+      <div className="auth-stats">
+        <div className="auth-card-stat">
+          <strong>+500</strong><br />Academias
         </div>
-      </div>
-
-      {/* DIREITA */}
-      <div className="auth-right">
-        <div className="auth-box">
-          <h2>Bem-vindo de volta</h2>
-          <p>Entre com suas credenciais para acessar o sistema</p>
-
-          {/* TOGGLE */}
-          <div className="auth-toggle">
-            <button className="active">Entrar</button>
-            <button onClick={() => navigate("/register")}>
-              Cadastrar
-            </button>
-          </div>
-
-          <form onSubmit={handleLogin}>
-
-            {/* EMAIL */}
-            <div className="auth-input-group">
-              <Mail />
-              <input
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            {/* SENHA */}
-            <div className="auth-input-group">
-              <Lock />
-              <input
-                type={showSenha ? "text" : "password"}
-                placeholder="Digite sua senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-              />
-              <span onClick={() => setShowSenha(!showSenha)} style={{ cursor: "pointer" }}>
-                {showSenha ? <EyeOff size={18} /> : <Eye size={18} />}
-              </span>
-            </div>
-
-            {/* LINK */}
-            <div className="auth-link">
-              Esqueceu a senha?
-            </div>
-
-            {/* BOTÃO */}
-            <button className="auth-button">
-              Entrar no Sistema
-            </button>
-
-          </form>
+        <div className="auth-card-stat">
+          <strong>+50k</strong><br />Alunos
         </div>
       </div>
     </div>
-  );
+
+    {/* DIREITA */}
+    <div className="auth-right">
+      <div className="auth-box">
+        <h2>Bem-vindo de volta</h2>
+        <p>Entre com suas credenciais para acessar o sistema</p>
+
+        <form onSubmit={handleLogin}>
+
+          <div className="auth-input-group">
+            <Mail />
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="auth-input-group">
+            <Lock />
+            <input
+              type={showSenha ? "text" : "password"}
+              placeholder="Digite sua senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
+            <span onClick={() => setShowSenha(!showSenha)}>
+              {showSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+            </span>
+          </div>
+
+          <div
+            className="auth-link"
+            onClick={() => setShowModal(true)}
+          >
+            Esqueceu a senha?
+          </div>
+
+          <button className="auth-button">
+            Entrar no Sistema
+          </button>
+
+        </form>
+      </div>
+    </div>
+
+    {/* MODAL RECUPERAÇÃO */}
+    {showModal && (
+      <div className="modal-overlay">
+        <div className="modal-box">
+
+          <h3>Recuperar senha</h3>
+          <p>Digite seu email para receber as instruções</p>
+
+          <input
+            type="email"
+            placeholder="seu@email.com"
+            value={emailRecuperacao}
+            onChange={(e) => setEmailRecuperacao(e.target.value)}
+          />
+
+          <div className="modal-actions">
+            <button
+              className="btn-secondary"
+              onClick={() => setShowModal(false)}
+            >
+              Cancelar
+            </button>
+
+            <button
+              className="btn-primary"
+              onClick={() => {
+                setShowModal(false);
+                setShowSuccess(true);
+              }}
+            >
+              Enviar
+            </button>
+          </div>
+
+        </div>
+      </div>
+    )}
+
+    {/* MODAL SUCESSO */}
+    {showSuccess && (
+      <div className="modal-overlay">
+        <div className="modal-success">
+
+          <div className="check">✔</div>
+
+          <h3>Senha enviada!</h3>
+          <p>
+            Enviamos sua senha para:
+            <br />
+            <strong>{emailRecuperacao}</strong>
+          </p>
+
+          <button
+            className="btn-primary"
+            onClick={() => setShowSuccess(false)}
+          >
+            OK, entendi
+          </button>
+
+        </div>
+      </div>
+    )}
+
+  </div>
+);
+
 
 }

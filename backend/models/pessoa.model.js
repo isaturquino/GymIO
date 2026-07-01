@@ -1,55 +1,103 @@
-const pool = require("../config/supabase"); // seu pool do pg
+const supabase = require("../config/supabase");
 
-// LISTAR TODOS
-const getAllPessoas = async () => {
-  const result = await pool.query("SELECT * FROM pessoa ORDER BY id DESC");
-  return result.rows;
+const PessoaModel = {
+  /**
+   * =========================
+   * CREATE
+   * =========================
+   */
+  async create(data) {
+    const { data: pessoa, error } = await supabase
+      .from("pessoa")
+      .insert([
+        {
+          nome: data.nome,
+          cpf: data.cpf,
+          email: data.email,
+          telefone: data.telefone,
+          data_nascimento: data.dataNascimento,
+          endereco: data.endereco,
+          password: data.senha,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return pessoa;
+  },
+
+  /**
+   * =========================
+   * FIND ALL
+   * =========================
+   */
+  async findAll() {
+    const { data, error } = await supabase
+      .from("pessoa")
+      .select("*")
+      .is("deleted_at", null)
+      .order("id", { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * =========================
+   * FIND BY ID
+   * =========================
+   */
+  async findById(id) {
+    const { data, error } = await supabase
+      .from("pessoa")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * =========================
+   * UPDATE
+   * =========================
+   */
+  async update(id, data) {
+    const { data: pessoa, error } = await supabase
+      .from("pessoa")
+      .update({
+        nome: data.nome,
+        cpf: data.cpf,
+        email: data.email,
+        telefone: data.telefone,
+        data_nascimento: data.dataNascimento,
+        endereco: data.endereco,
+        password: data.senha,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return pessoa;
+  },
+
+  /**
+   * =========================
+   * DELETE (soft delete)
+   * =========================
+   */
+  async delete(id) {
+    const { error } = await supabase
+      .from("pessoa")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) throw error;
+    return true;
+  },
 };
 
-// BUSCAR POR ID
-const getPessoaById = async (id) => {
-  const result = await pool.query("SELECT * FROM pessoa WHERE id = $1", [id]);
-  return result.rows[0];
-};
-
-// CRIAR
-const createPessoa = async (pessoa) => {
-  const { nome, cpf, telefone, plano, status } = pessoa;
-
-  const result = await pool.query(
-    `INSERT INTO pessoa (nome, cpf, telefone, plano, status)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING *`,
-    [nome, cpf, telefone, plano, status || "ativo"]
-  );
-
-  return result.rows[0];
-};
-
-// ATUALIZAR
-const updatePessoa = async (id, pessoa) => {
-  const { nome, cpf, telefone, plano, status } = pessoa;
-
-  const result = await pool.query(
-    `UPDATE pessoa
-     SET nome=$1, cpf=$2, telefone=$3, plano=$4, status=$5
-     WHERE id=$6
-     RETURNING *`,
-    [nome, cpf, telefone, plano, status, id]
-  );
-
-  return result.rows[0];
-};
-
-// DELETAR
-const deletePessoa = async (id) => {
-  await pool.query("DELETE FROM pessoa WHERE id=$1", [id]);
-};
-
-module.exports = {
-  getAllPessoas,
-  getPessoaById,
-  createPessoa,
-  updatePessoa,
-  deletePessoa,
-};
+module.exports = PessoaModel;
