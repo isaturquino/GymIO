@@ -67,47 +67,47 @@ export default function Pessoa() {
   }, []);
 
   async function obterDadosIniciais() {
-  try {
-    const [
-      respostaPessoas,
-      respostaContagem,
-      respostaIndicadores,
-      respostaPlanos,
-      respostaCargos,
-    ] = await Promise.all([
-      fetch(ENDPOINT_API),
-      fetch(`${ENDPOINT_API}/total-alunos`),
-      fetch(`${ENDPOINT_API}/indicadores`),
-      fetch(`${ENDPOINT_API}/planos`),
-      fetch(`${ENDPOINT_API}/cargos`),
-    ]);
+    try {
+      const [
+        respostaPessoas,
+        respostaContagem,
+        respostaIndicadores,
+        respostaPlanos,
+        respostaCargos,
+      ] = await Promise.all([
+        fetch(ENDPOINT_API),
+        fetch(`${ENDPOINT_API}/total-alunos`),
+        fetch(`${ENDPOINT_API}/indicadores`),
+        fetch(`${ENDPOINT_API}/planos`),
+        fetch(`${ENDPOINT_API}/cargos`),
+      ]);
 
-    const dadosPessoas = await respostaPessoas.json();
-    const dadosContagem = await respostaContagem.json();
-    const dadosIndicadores = await respostaIndicadores.json();
-    const dadosPlanos = await respostaPlanos.json();
-    const dadosCargos = await respostaCargos.json();
+      const dadosPessoas = await respostaPessoas.json();
+      const dadosContagem = await respostaContagem.json();
+      const dadosIndicadores = await respostaIndicadores.json();
+      const dadosPlanos = await respostaPlanos.json();
+      const dadosCargos = await respostaCargos.json();
 
-    console.log("INDICADORES:", dadosIndicadores);
+      console.log("INDICADORES:", dadosIndicadores);
 
-    setListaPessoas(Array.isArray(dadosPessoas) ? dadosPessoas : []);
-    setListaPlanos(Array.isArray(dadosPlanos) ? dadosPlanos : []);
-    setListaCargos(Array.isArray(dadosCargos) ? dadosCargos : []);
+      setListaPessoas(Array.isArray(dadosPessoas) ? dadosPessoas : []);
+      setListaPlanos(Array.isArray(dadosPlanos) ? dadosPlanos : []);
+      setListaCargos(Array.isArray(dadosCargos) ? dadosCargos : []);
 
-    setIndicadores({
-      total: dadosContagem.total || 0,
-      novosMes: dadosIndicadores.novosMes || 0,
-      cancelamentos: dadosIndicadores.cancelamentos || 0,
-      crescimento: dadosIndicadores.crescimento || 0,
-    });
-  } catch (erro) {
-    console.error("Erro ao carregar dados:", erro);
+      setIndicadores({
+        total: dadosContagem.total || 0,
+        novosMes: dadosIndicadores.novosMes || 0,
+        cancelamentos: dadosIndicadores.cancelamentos || 0,
+        crescimento: dadosIndicadores.crescimento || 0,
+      });
+    } catch (erro) {
+      console.error("Erro ao carregar dados:", erro);
 
-    setListaPessoas([]);
-    setListaPlanos([]);
-    setListaCargos([]);
+      setListaPessoas([]);
+      setListaPlanos([]);
+      setListaCargos([]);
+    }
   }
-}
 
   async function atualizarRegistros() {
     try {
@@ -269,7 +269,7 @@ export default function Pessoa() {
       }
 
       alert("Alterações salvas com sucesso!");
-      
+
       await obterDadosIniciais();
       setIsModalEdicaoAberto(false);
       setRegistroSelecionadoEdicao(null);
@@ -354,7 +354,7 @@ export default function Pessoa() {
             Nova Pessoa
           </button>
         </header>
-      
+
         <section className="stats-grid">
           <article className="stat-card">
             <div className="stat-icon stat-blue">
@@ -403,7 +403,7 @@ export default function Pessoa() {
             </div>
           </article>
         </section>
-      
+
         <section className="alunos-content">
           <div className="toolbar">
             <div className="search-box">
@@ -494,19 +494,8 @@ export default function Pessoa() {
 
           <footer className="table-footer">
             <span>
-              Mostrando 1 a {dadosFiltrados.length} de {listaPessoas.length}{" "}
-              pessoas
+              Mostrando {dadosFiltrados.length} de {listaPessoas.length} pessoas
             </span>
-
-            <div className="pagination">
-              <button>‹</button>
-              <button className="active">1</button>
-              <button>2</button>
-              <button>3</button>
-              <button>...</button>
-              <button>50</button>
-              <button>›</button>
-            </div>
           </footer>
         </section>
       </main>
