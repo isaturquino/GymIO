@@ -8,6 +8,7 @@ const controller = require("../controllers/pessoa.controller");
 router.get("/total-alunos", controller.getTotalAlunos);
 router.get("/planos", controller.getPlanos);
 router.get("/cargos", controller.getCargos);
+router.get("/indicadores", controller.getIndicadores);
 
 // =========================
 // CRUD PESSOA
@@ -18,3 +19,4 @@ router.put("/:id", controller.updatePessoa);
 router.delete("/:id", controller.deletePessoa);
 
 module.exports = router;
+
