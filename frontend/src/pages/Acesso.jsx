@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../layout/Sidebar";
 import {
   listarAcessos,
@@ -61,8 +61,17 @@ function formatarDataHora(valor) {
   return `${horario} ${dataFormatada}`;
 }
 
+function normalizarTexto(valor) {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export default function ControleAcesso() {
-  const [busca, setBusca] = useState("");
+  const [identificador, setIdentificador] = useState("");
+  const [termoBusca, setTermoBusca] = useState("");
   const [filtroCard, setFiltroCard] = useState("todos");
   const [acessos, setAcessos] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -110,8 +119,70 @@ export default function ControleAcesso() {
     carregarAcessos();
   }, []);
 
+  const acessosFiltrados = useMemo(() => {
+    const termoNormalizado = normalizarTexto(termoBusca);
+    const termoCpf = String(termoBusca || "").replace(/\D/g, "");
+
+    return acessos.filter((acesso) => {
+      const nomeNormalizado = normalizarTexto(acesso.aluno);
+      const cpfNormalizado = normalizarTexto(acesso.cpf);
+      const cpfNumeros = String(acesso.cpf || "").replace(/\D/g, "");
+
+      const passaBusca =
+        !termoNormalizado ||
+        nomeNormalizado.includes(termoNormalizado) ||
+        cpfNormalizado.includes(termoNormalizado) ||
+        (termoCpf && cpfNumeros.includes(termoCpf));
+
+      if (!passaBusca) {
+        return false;
+      }
+
+      if (filtroCard === "academia") {
+        return acesso.status === "Na academia";
+      }
+
+      if (filtroCard === "entrada") {
+        return (
+          acesso.tipo_acesso === "entrada" &&
+          isDataHoje(acesso.data_hora_acesso)
+        );
+      }
+
+      if (filtroCard === "saida") {
+        return Boolean(acesso.hora_saida) && isDataHoje(acesso.hora_saida);
+      }
+
+      if (filtroCard === "bloqueado") {
+        return (
+          acesso.tipo_acesso === "bloqueado" &&
+          isDataHoje(acesso.data_hora_acesso)
+        );
+      }
+
+      return true;
+    });
+  }, [acessos, filtroCard, termoBusca]);
+
+  function selecionarFiltroCard(filtro) {
+    if (filtroCard === filtro) {
+      setFiltroCard("todos");
+      setTermoBusca("");
+      return;
+    }
+
+    setFiltroCard(filtro);
+  }
+
+  function mostrarTodos() {
+    setFiltroCard("todos");
+    setTermoBusca("");
+  }
+
   async function handleEntrada() {
-    if (!busca.trim()) {
+    const identificadorInformado = identificador.trim();
+
+    if (!identificadorInformado) {
       setMensagem("");
       setErroAcao("Informe um CPF.");
       return;
@@ -122,7 +193,7 @@ export default function ControleAcesso() {
       setMensagem("");
       setErroAcao("");
 
-      const resultado = await registrarEntrada(busca);
+      const resultado = await registrarEntrada(identificadorInformado);
       setMensagem(resultado.mensagem || "Entrada registrada com sucesso.");
     } catch (error) {
       setErroAcao(
@@ -137,7 +208,9 @@ export default function ControleAcesso() {
   }
 
   async function handleSaida() {
-    if (!busca.trim()) {
+    const identificadorInformado = identificador.trim();
+
+    if (!identificadorInformado) {
       setMensagem("");
       setErroAcao("Informe um CPF.");
       return;
@@ -148,7 +221,7 @@ export default function ControleAcesso() {
       setMensagem("");
       setErroAcao("");
 
-      const resultado = await registrarSaida(busca);
+      const resultado = await registrarSaida(identificadorInformado);
       setMensagem(resultado.mensagem || "Saída registrada com sucesso.");
     } catch (error) {
       setErroAcao(
@@ -204,7 +277,7 @@ export default function ControleAcesso() {
             className={`stat-card card-blue ${
               filtroCard === "academia" ? "ativo" : ""
             }`}
-            onClick={() => setFiltroCard("academia")}
+            onClick={() => selecionarFiltroCard("academia")}
           >
             <div>
               <span>Na Academia</span>
@@ -221,7 +294,7 @@ export default function ControleAcesso() {
             className={`stat-card card-green ${
               filtroCard === "entrada" ? "ativo" : ""
             }`}
-            onClick={() => setFiltroCard("entrada")}
+            onClick={() => selecionarFiltroCard("entrada")}
           >
             <div>
               <span>Entradas Hoje</span>
@@ -238,7 +311,7 @@ export default function ControleAcesso() {
             className={`stat-card card-gray ${
               filtroCard === "saida" ? "ativo" : ""
             }`}
-            onClick={() => setFiltroCard("saida")}
+            onClick={() => selecionarFiltroCard("saida")}
           >
             <div>
               <span>Saídas Hoje</span>
@@ -255,10 +328,10 @@ export default function ControleAcesso() {
             className={`stat-card card-red ${
               filtroCard === "bloqueado" ? "ativo" : ""
             }`}
-            onClick={() => setFiltroCard("bloqueado")}
+            onClick={() => selecionarFiltroCard("bloqueado")}
           >
             <div>
-              <span>Bloqueados</span>
+              <span>Bloqueados hoje</span>
               <strong>{totalBloqueadosHoje}</strong>
               <small>Tentativas negadas</small>
             </div>
@@ -284,8 +357,8 @@ export default function ControleAcesso() {
             <input
               type="text"
               placeholder="Digite o CPF ou código do cartão..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              value={identificador}
+              onChange={(e) => setIdentificador(e.target.value)}
             />
 
             <button
@@ -326,8 +399,8 @@ export default function ControleAcesso() {
               <input
                 type="text"
                 placeholder="Buscar aluno..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
+                value={termoBusca}
+                onChange={(e) => setTermoBusca(e.target.value)}
               />
 
             </div>
@@ -338,79 +411,69 @@ export default function ControleAcesso() {
 
             <button
               className="btn-reset"
-              onClick={() => setFiltroCard("todos")}
+              onClick={mostrarTodos}
             >
               Mostrar Todos
             </button>
 
           </div>
 
-          <div className="acessos-table-wrapper">
-            <table className="acessos-table">
+<div className="acessos-table-wrapper">
+  <table className="acessos-table">
+    <thead>
+      <tr>
+        <th>Aluno</th>
+        <th>Entrada</th>
+        <th>Saída</th>
+        <th>Status</th>
+      </tr>
+    </thead>
 
-              <thead>
-                <tr>
-                  <th>Aluno</th>
-                  <th>Entrada</th>
-                  <th>Saída</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
+    <tbody>
+      {carregando ? (
+        <tr>
+          <td colSpan="4">Carregando...</td>
+        </tr>
+      ) : erro ? (
+        <tr>
+          <td colSpan="4">{erro}</td>
+        </tr>
+      ) : acessosFiltrados.length === 0 ? (
+        <tr>
+          <td colSpan="4">Nenhum acesso encontrado.</td>
+        </tr>
+      ) : (
+        acessosFiltrados.map((acesso) => (
+          <tr key={acesso.id}>
+            <td>
+              <div className="aluno-cell">
+                <div className="avatar">
+                  {iniciais(acesso.aluno)}
+                </div>
 
-              <tbody>
+                <span>{acesso.aluno}</span>
+              </div>
+            </td>
 
-                {carregando ? (
-                  <tr>
-                    <td colSpan="4">Carregando...</td>
-                  </tr>
-                ) : erro ? (
-                  <tr>
-                    <td colSpan="4">{erro}</td>
-                  </tr>
-                ) : acessos.length === 0 ? (
-                  <tr>
-                    <td colSpan="4">Nenhum acesso encontrado.</td>
-                  </tr>
-                ) : (
-                  acessos.map((acesso) => (
-                    <tr key={acesso.id}>
+            <td>{formatarDataHora(acesso.hora_entrada)}</td>
 
-                      <td>
-                        <div className="aluno-cell">
+            <td>{formatarDataHora(acesso.hora_saida)}</td>
 
-                          <div className="avatar">
-                            {iniciais(acesso.aluno)}
-                          </div>
-
-                          <span>{acesso.aluno}</span>
-
-                        </div>
-                      </td>
-
-                      <td>{formatarDataHora(acesso.hora_entrada)}</td>
-
-                      <td>{formatarDataHora(acesso.hora_saida)}</td>
-
-                      <td>
-
-                        <span
-                          className={`status-badge ${classeStatus(
-                            acesso.status
-                          )}`}
-                        >
-                          {acesso.status}
-                        </span>
-
-                      </td>
-
-                    </tr>
-                  ))
-                )}
-
-              </tbody>
-
-            </table>
-          </div>
+            <td>
+              <span
+                className={`status-badge ${classeStatus(
+                  acesso.status
+                )}`}
+              >
+                {acesso.status}
+              </span>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
 
         </section>
 
