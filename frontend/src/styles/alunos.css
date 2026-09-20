@@ -1,9 +1,12 @@
-html, body {
+html,
+body {
   height: 100%;
 }
+
 .alunos-layout {
   display: flex;
   min-height: 100vh;
+  height: 100vh;
   overflow: hidden;
   background: var(--color-bg-page);
 }
@@ -11,13 +14,12 @@ html, body {
 .alunos-page {
   flex: 1;
   height: 100vh;
-  padding: var(--content-padding-y) var(--content-padding-x);
+  padding: var(--content-padding-y) var(--content-padding-x) 28px;
   box-sizing: border-box;
   min-width: 85vw;
   max-width: 100vw;
-  overflow:hidden;
+  overflow: hidden;
 }
-
 
 .alunos-header {
   display: flex;
@@ -115,6 +117,7 @@ html, body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 10px;
+  margin-bottom: 24px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
@@ -162,6 +165,7 @@ html, body {
   background: var(--color-bg-surface);
   font-weight: var(--fw-medium);
   transition: var(--transition);
+  cursor: pointer;
 }
 
 .filters button:hover,
@@ -170,11 +174,18 @@ html, body {
   color: var(--color-primary);
   background: var(--blue-50);
 }
-
 .table-wrapper {
-  height: 350px;
+  height: calc(100vh - 10vh - 350px);
+  min-height: 250px;
   overflow-y: auto;
   overflow-x: auto;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 .alunos-table {
@@ -187,8 +198,6 @@ html, body {
 .alunos-table thead {
   background: var(--gray-50);
 }
-
-
 
 .alunos-table th {
   padding: 12px 10px;
@@ -223,6 +232,12 @@ html, body {
   align-items: center;
   justify-content: center;
   transition: var(--transition);
+  cursor: pointer;
+}
+
+.action-btn.view {
+  color: var(--color-primary);
+  background: var(--blue-50);
 }
 
 .action-btn.edit {
@@ -320,24 +335,12 @@ html, body {
   font-size: var(--text-xs);
 }
 
-.pagination {
-  display: flex;
-  gap: 6px;
-}
 
-.pagination button {
-  min-width: 30px;
-  height: 30px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-primary);
-  background: var(--color-bg-surface);
-}
 
-.pagination button.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
+.empty-table {
+  text-align: center;
+  padding: 35px !important;
+  color: var(--color-text-muted) !important;
 }
 
 /* MODAIS */
@@ -395,6 +398,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
 .modal-close:hover {
