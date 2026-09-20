@@ -345,70 +345,72 @@ export default function ControleAcesso() {
 
           </div>
 
-          <table className="acessos-table">
+          <div className="acessos-table-wrapper">
+            <table className="acessos-table">
 
-            <thead>
-              <tr>
-                <th>Aluno</th>
-                <th>Entrada</th>
-                <th>Saída</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {carregando ? (
+              <thead>
                 <tr>
-                  <td colSpan="4">Carregando...</td>
+                  <th>Aluno</th>
+                  <th>Entrada</th>
+                  <th>Saída</th>
+                  <th>Status</th>
                 </tr>
-              ) : erro ? (
-                <tr>
-                  <td colSpan="4">{erro}</td>
-                </tr>
-              ) : acessos.length === 0 ? (
-                <tr>
-                  <td colSpan="4">Nenhum acesso encontrado.</td>
-                </tr>
-              ) : (
-                acessos.map((acesso) => (
-                  <tr key={acesso.id}>
+              </thead>
 
-                    <td>
-                      <div className="aluno-cell">
+              <tbody>
 
-                        <div className="avatar">
-                          {iniciais(acesso.aluno)}
-                        </div>
-
-                        <span>{acesso.aluno}</span>
-
-                      </div>
-                    </td>
-
-                    <td>{formatarDataHora(acesso.hora_entrada)}</td>
-
-                    <td>{formatarDataHora(acesso.hora_saida)}</td>
-
-                    <td>
-
-                      <span
-                        className={`status-badge ${classeStatus(
-                          acesso.status
-                        )}`}
-                      >
-                        {acesso.status}
-                      </span>
-
-                    </td>
-
+                {carregando ? (
+                  <tr>
+                    <td colSpan="4">Carregando...</td>
                   </tr>
-                ))
-              )}
+                ) : erro ? (
+                  <tr>
+                    <td colSpan="4">{erro}</td>
+                  </tr>
+                ) : acessos.length === 0 ? (
+                  <tr>
+                    <td colSpan="4">Nenhum acesso encontrado.</td>
+                  </tr>
+                ) : (
+                  acessos.map((acesso) => (
+                    <tr key={acesso.id}>
 
-            </tbody>
+                      <td>
+                        <div className="aluno-cell">
 
-          </table>
+                          <div className="avatar">
+                            {iniciais(acesso.aluno)}
+                          </div>
+
+                          <span>{acesso.aluno}</span>
+
+                        </div>
+                      </td>
+
+                      <td>{formatarDataHora(acesso.hora_entrada)}</td>
+
+                      <td>{formatarDataHora(acesso.hora_saida)}</td>
+
+                      <td>
+
+                        <span
+                          className={`status-badge ${classeStatus(
+                            acesso.status
+                          )}`}
+                        >
+                          {acesso.status}
+                        </span>
+
+                      </td>
+
+                    </tr>
+                  ))
+                )}
+
+              </tbody>
+
+            </table>
+          </div>
 
         </section>
 
