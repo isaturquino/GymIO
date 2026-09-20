@@ -198,32 +198,51 @@
    TABELA
 ========================================================= */
 
-table {
+.equipe-table-wrapper {
+  height: 350px;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+}
+
+.equipe-table {
   width: 100%;
+  min-width: 650px;
   border-collapse: separate;
   border-spacing: 0 6px;
 }
 
-th {
+.equipe-table thead {
+  background: var(--gray-50);
+}
+
+.equipe-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   text-align: left;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   padding: 10px;
   white-space: nowrap;
+  background: var(--gray-50);
+  box-shadow:
+    0 -6px 0 var(--gray-50),
+    0 6px 0 var(--gray-50);
 }
 
-td {
+.equipe-table td {
   padding: 12px 10px;
   vertical-align: middle;
 }
 
-tbody tr {
+.equipe-table tbody tr {
   background: var(--color-bg-surface);
   border-radius: var(--radius-lg);
   transition: var(--transition);
 }
 
-tbody tr:hover {
+.equipe-table tbody tr:hover {
   background: var(--gray-50);
 }
 
@@ -811,12 +830,8 @@ tbody tr:hover {
     padding: 16px;
   }
 
-  .table-box {
-    overflow-x: auto;
-  }
-
-  table {
-    min-width: 650px;
+  .equipe-table-wrapper {
+    height: 320px;
   }
 }
 

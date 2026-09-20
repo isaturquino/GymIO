@@ -196,16 +196,16 @@ export default function Equipamentos() {
   ).length;
 
   const equipamentosFiltrados = equipamentos.filter((eq) => {
-  const texto = busca.toLowerCase();
+    const texto = busca.toLowerCase();
 
-  return (
-    eq.nome?.toLowerCase().includes(texto) ||
-    eq.codigo?.toLowerCase().includes(texto) ||
-    eq.status?.toLowerCase().includes(texto) ||
-    eq.categoria?.toLowerCase().includes(texto) ||
-    eq.localizacao?.toLowerCase().includes(texto)
-  );
-});
+    return (
+      eq.nome?.toLowerCase().includes(texto) ||
+      eq.codigo?.toLowerCase().includes(texto) ||
+      eq.status?.toLowerCase().includes(texto) ||
+      eq.categoria?.toLowerCase().includes(texto) ||
+      eq.localizacao?.toLowerCase().includes(texto)
+    );
+  });
 
   return (
     <div className="app-container">
@@ -224,36 +224,36 @@ export default function Equipamentos() {
         </div>
 
         <div className="equipamentos-cards">
-          <div className="card-info">
-            <div>
-              <span>Total de Equipamentos</span>
-              <h2>{equipamentos.length}</h2>
-            </div>
-            <div className="icon azul">
-              <Dumbbell size={24} />
-            </div>
-          </div>
+  <div className="equip-card-info">
+    <div className="equip-card-texto">
+      <span>Total de Equipamentos</span>
+      <h2>{equipamentos.length}</h2>
+    </div>
+    <div className="equip-icon azul">
+      <Dumbbell size={22} />
+    </div>
+  </div>
 
-          <div className="card-info">
-            <div>
-              <span>Funcionando</span>
-              <h2>{totalFuncionando}</h2>
-            </div>
-            <div className="icon verde">
-              <CheckCircle size={24} />
-            </div>
-          </div>
+  <div className="equip-card-info">
+    <div className="equip-card-texto">
+      <span>Funcionando</span>
+      <h2>{totalFuncionando}</h2>
+    </div>
+    <div className="equip-icon verde">
+      <CheckCircle size={22} />
+    </div>
+  </div>
 
-          <div className="card-info">
-            <div>
-              <span>Em Manutenção</span>
-              <h2>{totalManutencao}</h2>
-            </div>
-            <div className="icon amarelo">
-              <Wrench size={24} />
-            </div>
-          </div>
-        </div>
+  <div className="equip-card-info">
+    <div className="equip-card-texto">
+      <span>Em Manutenção</span>
+      <h2>{totalManutencao}</h2>
+    </div>
+    <div className="equip-icon amarelo">
+      <Wrench size={22} />
+    </div>
+  </div>
+</div>
 
         <div className="equipamentos-box">
           <div className="box-header">
@@ -270,57 +270,58 @@ export default function Equipamentos() {
             </div>
           </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>Equipamento</th>
-                <th>Código</th>
-                <th>Status</th>
-                <th>Última Manutenção</th>
-                <th>Próxima</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
+          <div className="equipamentos-table-wrapper">
+            <table className="equipamentos-table">
+              <thead>
+                <tr>
+                  <th>Equipamento</th>
+                  <th>Código</th>
+                  <th>Status</th>
+                  <th>Última Manutenção</th>
+                  <th>Próxima</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {equipamentosFiltrados.map((eq) => (
-                <tr key={eq.id}>
-                  <td>{eq.nome}</td>
-                  <td>{eq.codigo || "-"}</td>
-                  <td>
-                    <span
-                      className={`status ${
-                        eq.status?.toLowerCase() === "funcionando"
+              <tbody>
+                {equipamentosFiltrados.map((eq) => (
+                  <tr key={eq.id}>
+                    <td>{eq.nome}</td>
+                    <td>{eq.codigo || "-"}</td>
+                    <td>
+                      <span
+                        className={`status ${eq.status?.toLowerCase() === "funcionando"
                           ? "funcionando"
                           : "manutencao"
-                      }`}
-                    >
-                      {eq.status || "-"}
-                    </span>
-                  </td>
-                  <td>{eq.ultimaManutencao || "-"}</td>
-                  <td>{eq.proximaManutencao || "-"}</td>
-                  <td className="acoes">
-                    <Pencil
-                      size={18}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => abrirEditar(eq)}
-                    />
-                    <Trash2
-                      size={18}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => abrirExcluir(eq)}
-                    />
-                    <Info
-                      size={18}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => abrirDetalhes(eq)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                          }`}
+                      >
+                        {eq.status || "-"}
+                      </span>
+                    </td>
+                    <td>{eq.ultimaManutencao || "-"}</td>
+                    <td>{eq.proximaManutencao || "-"}</td>
+                    <td className="acoes">
+                      <Pencil
+                        size={18}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => abrirEditar(eq)}
+                      />
+                      <Trash2
+                        size={18}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => abrirExcluir(eq)}
+                      />
+                      <Info
+                        size={18}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => abrirDetalhes(eq)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="equipamentos-box">
@@ -346,9 +347,8 @@ export default function Equipamentos() {
                 </div>
 
                 <span
-                  className={`tipo ${
-                    m.tipo === "Preventiva" ? "preventiva" : "corretiva"
-                  }`}
+                  className={`tipo ${m.tipo === "Preventiva" ? "preventiva" : "corretiva"
+                    }`}
                 >
                   {m.tipo || "-"}
                 </span>
