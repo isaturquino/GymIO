@@ -242,6 +242,14 @@
   display: flex;
   flex-direction: column;
 }
+.activities-list:empty::after {
+  content: "Nenhuma atividade recente";
+  display: block;
+  padding: 20px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
 
 .activity-item {
   display: flex;
