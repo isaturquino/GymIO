@@ -418,70 +418,62 @@ export default function ControleAcesso() {
 
           </div>
 
-          <table className="acessos-table">
+<div className="acessos-table-wrapper">
+  <table className="acessos-table">
+    <thead>
+      <tr>
+        <th>Aluno</th>
+        <th>Entrada</th>
+        <th>Saída</th>
+        <th>Status</th>
+      </tr>
+    </thead>
 
-            <thead>
-              <tr>
-                <th>Aluno</th>
-                <th>Entrada</th>
-                <th>Saída</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+    <tbody>
+      {carregando ? (
+        <tr>
+          <td colSpan="4">Carregando...</td>
+        </tr>
+      ) : erro ? (
+        <tr>
+          <td colSpan="4">{erro}</td>
+        </tr>
+      ) : acessosFiltrados.length === 0 ? (
+        <tr>
+          <td colSpan="4">Nenhum acesso encontrado.</td>
+        </tr>
+      ) : (
+        acessosFiltrados.map((acesso) => (
+          <tr key={acesso.id}>
+            <td>
+              <div className="aluno-cell">
+                <div className="avatar">
+                  {iniciais(acesso.aluno)}
+                </div>
 
-            <tbody>
+                <span>{acesso.aluno}</span>
+              </div>
+            </td>
 
-              {carregando ? (
-                <tr>
-                  <td colSpan="4">Carregando...</td>
-                </tr>
-              ) : erro ? (
-                <tr>
-                  <td colSpan="4">{erro}</td>
-                </tr>
-              ) : acessosFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan="4">Nenhum acesso encontrado.</td>
-                </tr>
-              ) : (
-                acessosFiltrados.map((acesso) => (
-                  <tr key={acesso.id}>
+            <td>{formatarDataHora(acesso.hora_entrada)}</td>
 
-                    <td>
-                      <div className="aluno-cell">
+            <td>{formatarDataHora(acesso.hora_saida)}</td>
 
-                        <div className="avatar">
-                          {iniciais(acesso.aluno)}
-                        </div>
-
-                        <span>{acesso.aluno}</span>
-
-                      </div>
-                    </td>
-
-                    <td>{formatarDataHora(acesso.hora_entrada)}</td>
-
-                    <td>{formatarDataHora(acesso.hora_saida)}</td>
-
-                    <td>
-
-                      <span
-                        className={`status-badge ${classeStatus(
-                          acesso.status
-                        )}`}
-                      >
-                        {acesso.status}
-                      </span>
-
-                    </td>
-
-                  </tr>
-                ))
-              )}
-
-            </tbody>
-
-          </table>
+            <td>
+              <span
+                className={`status-badge ${classeStatus(
+                  acesso.status
+                )}`}
+              >
+                {acesso.status}
+              </span>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
 
         </section>
 

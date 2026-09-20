@@ -56,48 +56,58 @@ export default function Pessoa() {
   const [isModalInclusaoAberto, setIsModalInclusaoAberto] = useState(false);
   const [dadosNovoRegistro, setDadosNovoRegistro] = useState(payloadInicial);
   const [isModalEdicaoAberto, setIsModalEdicaoAberto] = useState(false);
-  const [registroSelecionadoEdicao, setRegistroSelecionadoEdicao] = useState(null);
+  const [registroSelecionadoEdicao, setRegistroSelecionadoEdicao] =
+    useState(null);
   const [isModalRemocaoAberto, setIsModalRemocaoAberto] = useState(false);
-  const [registroSelecionadoRemocao, setRegistroSelecionadoRemocao] = useState(null);
+  const [registroSelecionadoRemocao, setRegistroSelecionadoRemocao] =
+    useState(null);
 
   useEffect(() => {
     obterDadosIniciais();
   }, []);
 
   async function obterDadosIniciais() {
-  try {
-    const [
-      respostaPessoas,
-      respostaContagem,
-      respostaPlanos,
-      respostaCargos,
-    ] = await Promise.all([
-      fetch(ENDPOINT_API),
-      fetch(`${ENDPOINT_API}/total-alunos`),
-      fetch(`${ENDPOINT_API}/planos`),
-      fetch(`${ENDPOINT_API}/cargos`),
-    ]);
+    try {
+      const [
+        respostaPessoas,
+        respostaContagem,
+        respostaIndicadores,
+        respostaPlanos,
+        respostaCargos,
+      ] = await Promise.all([
+        fetch(ENDPOINT_API),
+        fetch(`${ENDPOINT_API}/total-alunos`),
+        fetch(`${ENDPOINT_API}/indicadores`),
+        fetch(`${ENDPOINT_API}/planos`),
+        fetch(`${ENDPOINT_API}/cargos`),
+      ]);
 
-    const dadosPessoas = await respostaPessoas.json();
-    const dadosContagem = await respostaContagem.json();
-    const dadosPlanos = await respostaPlanos.json();
-    const dadosCargos = await respostaCargos.json();
+      const dadosPessoas = await respostaPessoas.json();
+      const dadosContagem = await respostaContagem.json();
+      const dadosIndicadores = await respostaIndicadores.json();
+      const dadosPlanos = await respostaPlanos.json();
+      const dadosCargos = await respostaCargos.json();
 
-    setListaPessoas(Array.isArray(dadosPessoas) ? dadosPessoas : []);
-    setListaPlanos(Array.isArray(dadosPlanos) ? dadosPlanos : []);
-    setListaCargos(Array.isArray(dadosCargos) ? dadosCargos : []);
+      console.log("INDICADORES:", dadosIndicadores);
 
-    setIndicadores((estadoAnterior) => ({
-      ...estadoAnterior,
-      total: dadosContagem.total || 0,
-    }));
-  } catch (erro) {
-    console.error("Erro ao carregar dados:", erro);
-    setListaPessoas([]);
-    setListaPlanos([]);
-    setListaCargos([]);
+      setListaPessoas(Array.isArray(dadosPessoas) ? dadosPessoas : []);
+      setListaPlanos(Array.isArray(dadosPlanos) ? dadosPlanos : []);
+      setListaCargos(Array.isArray(dadosCargos) ? dadosCargos : []);
+
+      setIndicadores({
+        total: dadosContagem.total || 0,
+        novosMes: dadosIndicadores.novosMes || 0,
+        cancelamentos: dadosIndicadores.cancelamentos || 0,
+        crescimento: dadosIndicadores.crescimento || 0,
+      });
+    } catch (erro) {
+      console.error("Erro ao carregar dados:", erro);
+
+      setListaPessoas([]);
+      setListaPlanos([]);
+      setListaCargos([]);
+    }
   }
-}
 
   async function atualizarRegistros() {
     try {
@@ -176,7 +186,7 @@ export default function Pessoa() {
       }
 
       alert("Cadastro realizado com sucesso!");
-      await atualizarRegistros();
+      await obterDadosIniciais();
 
       setDadosNovoRegistro(payloadInicial);
       setIsModalInclusaoAberto(false);
@@ -197,8 +207,7 @@ export default function Pessoa() {
       cargo_id: item.cargo_id || "",
       status: item.status_assinatura || item.status || "Ativo",
       dataNascimento: item.dataNascimento || item.data_nascimento || "",
-      dataMatricula:
-        item.data_matricula || item.matricula || "",
+      dataMatricula: item.data_matricula || item.matricula || "",
       dataAdmissao: item.data_admissao || "",
     });
     setIsModalEdicaoAberto(true);
@@ -208,33 +217,48 @@ export default function Pessoa() {
     if (!registroSelecionadoEdicao) return;
 
     try {
-      const resposta = await fetch(`${ENDPOINT_API}/${registroSelecionadoEdicao.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const resposta = await fetch(
+        `${ENDPOINT_API}/${registroSelecionadoEdicao.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nome: registroSelecionadoEdicao.nome,
+            cpf: registroSelecionadoEdicao.cpf,
+            telefone: registroSelecionadoEdicao.telefone,
+            email: registroSelecionadoEdicao.email,
+            dataNascimento: registroSelecionadoEdicao.dataNascimento,
+            endereco: registroSelecionadoEdicao.endereco,
+            senha: registroSelecionadoEdicao.senha,
+            // Propriedades fragmentadas enviadas de forma íntegra para o back-end
+            isAluno: registroSelecionadoEdicao.isAluno,
+            plano_id: registroSelecionadoEdicao.isAluno
+              ? registroSelecionadoEdicao.plano_id
+              : null,
+            status: registroSelecionadoEdicao.isAluno
+              ? registroSelecionadoEdicao.status
+              : "Ativo",
+            dataMatricula: registroSelecionadoEdicao.isAluno
+              ? registroSelecionadoEdicao.dataMatricula
+              : null,
+            isFuncionario: registroSelecionadoEdicao.isFuncionario,
+            cargo_id: registroSelecionadoEdicao.isFuncionario
+              ? registroSelecionadoEdicao.cargo_id
+              : null,
+            dataAdmissao: registroSelecionadoEdicao.isFuncionario
+              ? registroSelecionadoEdicao.dataAdmissao
+              : null,
+            salario: registroSelecionadoEdicao.isFuncionario
+              ? registroSelecionadoEdicao.salario
+              : null,
+            comissao: registroSelecionadoEdicao.isFuncionario
+              ? registroSelecionadoEdicao.comissao
+              : null,
+          }),
         },
-        body: JSON.stringify({
-          nome: registroSelecionadoEdicao.nome,
-          cpf: registroSelecionadoEdicao.cpf,
-          telefone: registroSelecionadoEdicao.telefone,
-          email: registroSelecionadoEdicao.email,
-          dataNascimento: registroSelecionadoEdicao.dataNascimento,
-          endereco: registroSelecionadoEdicao.endereco,
-          senha: registroSelecionadoEdicao.senha,
-          // Propriedades fragmentadas enviadas de forma íntegra para o back-end
-          isAluno: registroSelecionadoEdicao.isAluno,
-          plano_id: registroSelecionadoEdicao.isAluno ? registroSelecionadoEdicao.plano_id : null,
-          status: registroSelecionadoEdicao.isAluno ? registroSelecionadoEdicao.status : "Ativo",
-          dataMatricula: registroSelecionadoEdicao.isAluno ? registroSelecionadoEdicao.dataMatricula : null,
-          isFuncionario: registroSelecionadoEdicao.isFuncionario,
-          cargo_id: registroSelecionadoEdicao.isFuncionario
-            ? registroSelecionadoEdicao.cargo_id
-            : null,
-          dataAdmissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.dataAdmissao : null,
-          salario: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.salario : null,
-          comissao: registroSelecionadoEdicao.isFuncionario ? registroSelecionadoEdicao.comissao : null,
-        }),
-      });
+      );
 
       const resultado = await resposta.json();
 
@@ -245,7 +269,8 @@ export default function Pessoa() {
       }
 
       alert("Alterações salvas com sucesso!");
-      await atualizarRegistros();
+
+      await obterDadosIniciais();
       setIsModalEdicaoAberto(false);
       setRegistroSelecionadoEdicao(null);
     } catch (erro) {
@@ -263,9 +288,12 @@ export default function Pessoa() {
     if (!registroSelecionadoRemocao) return;
 
     try {
-      const resposta = await fetch(`${ENDPOINT_API}/${registroSelecionadoRemocao.id}`, {
-        method: "DELETE",
-      });
+      const resposta = await fetch(
+        `${ENDPOINT_API}/${registroSelecionadoRemocao.id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (!resposta.ok) {
         const erroObtido = await resposta.json();
@@ -274,7 +302,11 @@ export default function Pessoa() {
         return;
       }
 
-      setListaPessoas((estadoAnterior) => estadoAnterior.filter((item) => item.id !== registroSelecionadoRemocao.id));
+      setListaPessoas((estadoAnterior) =>
+        estadoAnterior.filter(
+          (item) => item.id !== registroSelecionadoRemocao.id,
+        ),
+      );
       setIsModalRemocaoAberto(false);
       setRegistroSelecionadoRemocao(null);
     } catch (erro) {
@@ -328,6 +360,7 @@ export default function Pessoa() {
             <div className="stat-icon stat-blue">
               <Users size={22} />
             </div>
+
             <div>
               <span>Total Registrado</span>
               <strong>{indicadores.total}</strong>
@@ -338,10 +371,10 @@ export default function Pessoa() {
             <div className="stat-icon stat-green">
               <TrendingUp size={22} />
             </div>
+
             <div>
               <span>Novos este mês</span>
               <strong>{indicadores.novosMes}</strong>
-              <small className="positivo">↑ 12% vs. mês anterior</small>
             </div>
           </article>
 
@@ -349,10 +382,10 @@ export default function Pessoa() {
             <div className="stat-icon stat-red">
               <CircleX size={22} />
             </div>
+
             <div>
               <span>Cancelamentos</span>
               <strong>{indicadores.cancelamentos}</strong>
-              <small className="negativo">↑ 50% vs. mês anterior</small>
             </div>
           </article>
 
@@ -360,10 +393,13 @@ export default function Pessoa() {
             <div className="stat-icon stat-green">
               <TrendingUp size={22} />
             </div>
+
             <div>
               <span>Taxa de Crescimento</span>
-              <strong>+{indicadores.crescimento}%</strong>
-              <small className="positivo">↑ 8% vs. mês anterior</small>
+              <strong>
+                {indicadores.crescimento > 0 ? "+" : ""}
+                {indicadores.crescimento}%
+              </strong>
             </div>
           </article>
         </section>
@@ -381,17 +417,15 @@ export default function Pessoa() {
             </div>
 
             <div className="filters">
-              {["Todos", "Ativo", "Inadimplente", "Cancelado"].map(
-                (status) => (
-                  <button
-                    key={status}
-                    className={filtroAtual === status ? "active" : ""}
-                    onClick={() => setFiltroAtual(status)}
-                  >
-                    {status === "Ativo" ? "Ativos" : status}
-                  </button>
-                )
-              )}
+              {["Todos", "Ativo", "Inadimplente", "Cancelado"].map((status) => (
+                <button
+                  key={status}
+                  className={filtroAtual === status ? "active" : ""}
+                  onClick={() => setFiltroAtual(status)}
+                >
+                  {status === "Ativo" ? "Ativos" : status}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -435,7 +469,9 @@ export default function Pessoa() {
 
                     <td>
                       <div className="student-cell">
-                        <div className="avatar">{extrairIniciais(pessoa.nome)}</div>
+                        <div className="avatar">
+                          {extrairIniciais(pessoa.nome)}
+                        </div>
                         <span>{pessoa.nome}</span>
                       </div>
                     </td>
@@ -445,8 +481,7 @@ export default function Pessoa() {
                     <td>{pessoa.email}</td>
                     <td>
                       {converterData(
-                        pessoa.dataNascimento ||
-                        pessoa.data_nascimento
+                        pessoa.dataNascimento || pessoa.data_nascimento,
                       )}
                     </td>
                     <td className="address-cell">{pessoa.endereco}</td>
@@ -459,18 +494,8 @@ export default function Pessoa() {
 
           <footer className="table-footer">
             <span>
-              Mostrando 1 a {dadosFiltrados.length} de {listaPessoas.length} pessoas
+              Mostrando {dadosFiltrados.length} de {listaPessoas.length} pessoas
             </span>
-
-            <div className="pagination">
-              <button>‹</button>
-              <button className="active">1</button>
-              <button>2</button>
-              <button>3</button>
-              <button>...</button>
-              <button>50</button>
-              <button>›</button>
-            </div>
           </footer>
         </section>
       </main>
@@ -540,13 +565,15 @@ export default function Pessoa() {
               <div>
                 <span>CPF: {registroSelecionadoRemocao.cpf}</span>
                 <span>Plano: {registroSelecionadoRemocao.plano || "-"}</span>
-                <span>Status: {registroSelecionadoRemocao.status_assinatura || "-"}</span>
+                <span>
+                  Status: {registroSelecionadoRemocao.status_assinatura || "-"}
+                </span>
                 <span>Matrícula: {registroSelecionadoRemocao.matricula}</span>
                 <span>
                   Nascimento:{" "}
                   {converterData(
                     registroSelecionadoRemocao.dataNascimento ||
-                    registroSelecionadoRemocao.data_nascimento
+                      registroSelecionadoRemocao.data_nascimento,
                   )}
                 </span>
                 <span>E-mail: {registroSelecionadoRemocao.email}</span>
