@@ -47,6 +47,7 @@ export default function Planos() {
   const [planos, setPlanos] = useState([]);
   const [matriculas, setMatriculas] = useState([]);
   const [busca, setBusca] = useState("");
+  const [mostrarTodosPlanos, setMostrarTodosPlanos] = useState(false);
 
   useEffect(() => {
 
@@ -100,14 +101,37 @@ export default function Planos() {
     return (
       (item.aluno ?? "").toLowerCase().includes(termo) ||
       (item.plano ?? "").toLowerCase().includes(termo) ||
-      (item.status ?? "").toLowerCase().includes(termo)
+      statusExibicao(item).toLowerCase().includes(termo)
     );
   });
 }, [busca, matriculas]);
 
+  const LIMITE_PLANOS = 6;
+  const planosExibidos = mostrarTodosPlanos ? planos : planos.slice(0, LIMITE_PLANOS);
+
   const totalPlanos = planos.length;
-  const matriculasAtivas = matriculas.filter((m) => m.status === "Ativa").length;
-  const vencendo = matriculas.filter((m) => m.status === "Vencendo").length;
+  const matriculasAtivas = matriculas.filter((m) => statusExibicao(m) === "Ativa").length;
+  
+  const vencendo = matriculas.filter((m) => statusExibicao(m) === "Vencendo").length;
+
+  const crescimento = useMemo(() => {
+  const hoje = new Date();
+  const inicioMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const inicioMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+
+  const mesAtual = matriculas.filter(
+    (m) => new Date(m.data_assinatura) >= inicioMesAtual
+  ).length;
+
+  const mesAnterior = matriculas.filter((m) => {
+    const d = new Date(m.data_assinatura);
+    return d >= inicioMesAnterior && d < inicioMesAtual;
+  }).length;
+
+  if (mesAnterior === 0) return mesAtual > 0 ? 100 : 0;
+
+  return Math.round(((mesAtual - mesAnterior) / mesAnterior) * 100);
+}, [matriculas]);
 
   function formatarMoeda(valor) {
     return Number(valor || 0).toLocaleString("pt-BR", {
@@ -131,6 +155,16 @@ export default function Planos() {
       .slice(0, 2)
       .toUpperCase();
   }
+
+  function statusExibicao(m) {
+  if ((m.status || "").toLowerCase() === "cancelada") return "Cancelada";
+
+  const dias = (new Date(m.data_fim) - new Date()) / 86400000;
+
+  if (dias >= 0 && dias <= 15) return "Vencendo";
+
+  return "Ativa";
+}
 
   function abrirNovoPlano() {
     setPlanoEditando(null);
@@ -306,78 +340,90 @@ export default function Planos() {
           </article>
 
           <article className="stat-card planos-stat-card">
-            <div>
-              <span>Crescimento</span>
-              <strong>+15%</strong>
-              <small className="positivo">vs. mês anterior</small>
-            </div>
-            <div className="stat-icon stat-green">
-              <TrendingUp size={22} />
-            </div>
-          </article>
-        </section>
+          <div>
+            <span>Crescimento</span>
+            <strong>{crescimento >= 0 ? `+${crescimento}%` : `${crescimento}%`}</strong>
+            <small className={crescimento >= 0 ? "positivo" : "negativo"}>
+              vs. mês anterior
+            </small>
+          </div>
+          <div className="stat-icon stat-green">
+            <TrendingUp size={22} />
+          </div>
+        </article>
+      </section>
 
-        <section className="planos-section">
-          <div className="section-title-row">
-            <div>
-              <h2>Planos Disponíveis</h2>
-              <p>Visualize e edite os planos da academia</p>
-            </div>
+      <section className="planos-section">
+  <div className="section-title-row">
+    <div>
+      <h2>Planos Disponíveis</h2>
+      <p>Visualize e edite os planos da academia</p>
+    </div>
+  </div>
+
+  <div className="planos-grid">
+    {planosExibidos.map((plano) => (
+      <article
+        key={plano.id}
+        className={`plano-card ${plano.popular ? "popular" : ""}`}
+      >
+        {plano.popular && (
+          <div className="popular-badge">
+            <Star size={12} />
+            Popular
+          </div>
+        )}
+
+        <div className="plano-card-top">
+          <div className="plano-icon">
+            <CreditCard size={20} />
           </div>
 
-          <div className="planos-grid">
-            {planos.map((plano) => (
-              <article
-                key={plano.id}
-                className={`plano-card ${plano.popular ? "popular" : ""}`}
-              >
-                {plano.popular && (
-                  <div className="popular-badge">
-                    <Star size={12} />
-                    Popular
-                  </div>
-                )}
+          <div className="table-actions">
+            <button
+              className="action-btn edit"
+              onClick={() => abrirEditarPlano(plano)}
+            >
+              <Pencil size={14} />
+            </button>
 
-                <div className="plano-card-top">
-                  <div className="plano-icon">
-                    <CreditCard size={20} />
-                  </div>
-
-                  <div className="table-actions">
-                    <button
-                      className="action-btn edit"
-                      onClick={() => abrirEditarPlano(plano)}
-                    >
-                      <Pencil size={14} />
-                    </button>
-
-                    <button
-                      className="action-btn delete"
-                      onClick={() => confirmarExclusao("plano", plano)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                <h3>{plano.nome_plano}</h3>
-                <p>{plano.descricao}</p>
-
-                <div className="plano-preco">
-                  {formatarMoeda(plano.valor)}
-                  <span>/{plano.duracao_meses} meses</span>
-                </div>
-
-                <div className="plano-info">
-                  <span>Plano ativo</span>
-                  <span className="badge status-ativo">
-   Ativo
-</span>
-                </div>
-              </article>
-            ))}
+            <button
+              className="action-btn delete"
+              onClick={() => confirmarExclusao("plano", plano)}
+            >
+              <Trash2 size={14} />
+            </button>
           </div>
-        </section>
+        </div>
+
+        <h3>{plano.nome_plano}</h3>
+        <p>{plano.descricao}</p>
+
+        <div className="plano-preco">
+          {formatarMoeda(plano.valor)}
+          <span>/{plano.duracao_meses} meses</span>
+        </div>
+
+        <div className="plano-info">
+          <span>Plano ativo</span>
+          <span className="badge status-ativo">
+            Ativo
+          </span>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  {planos.length > LIMITE_PLANOS && (
+    <button
+      className="btn btn--outline"
+      onClick={() => setMostrarTodosPlanos((v) => !v)}
+      style={{ marginTop: "16px" }}
+    >
+      {mostrarTodosPlanos ? "Mostrar menos" : `Ver todos os ${planos.length} planos`}
+    </button>
+  )}
+</section>
 
        
       </main>

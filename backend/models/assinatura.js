@@ -4,11 +4,17 @@ class Assinatura {
 
   static async listar(){
 
-    const query = `
-      SELECT
-      a.*,
-      p.nome AS aluno_nome,
-      pl.nome_plano
+  const query = `
+    SELECT
+      a.id,
+      a.aluno_id,
+      a.plano_id,
+      a.data_inicio,
+      a.data_fim,
+      a.status_assinatura AS status,
+      a.data_assinatura,
+      p.nome AS aluno,
+      pl.nome_plano AS plano
 
       FROM assinatura a
 
@@ -24,15 +30,12 @@ class Assinatura {
       WHERE a.deleted_at IS NULL
 
       ORDER BY a.data_inicio DESC
-    `;
+  `;
 
-    const { rows } =
-      await pool.query(query);
+  const { rows } = await pool.query(query);
 
-    return rows;
-
-  }
-
+  return rows;
+}
 
   static async alunoPossuiAtiva(
     aluno_id
