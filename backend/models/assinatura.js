@@ -46,7 +46,7 @@ class Assinatura {
       FROM assinatura
 
       WHERE aluno_id=$1
-      AND status_assinatura='ativa'
+      AND status_assinatura ILIKE 'Ativo'
       AND deleted_at IS NULL
     `;
 
@@ -105,7 +105,7 @@ class Assinatura {
         $2,
         CURRENT_DATE,
         CURRENT_DATE + ($3 || ' month')::INTERVAL,
-        'ativa',
+        'Ativo',
         CURRENT_DATE
       )
 
@@ -131,7 +131,7 @@ class Assinatura {
 
     const query = `
       UPDATE assinatura
-      SET status_assinatura='cancelada'
+      SET status_assinatura='Cancelado'
 
       WHERE id=$1
 
@@ -167,7 +167,7 @@ class Assinatura {
         ) || ' month'
       )::INTERVAL,
 
-      status_assinatura='ativa'
+      status_assinatura='Ativo'
 
       WHERE id=$1
 

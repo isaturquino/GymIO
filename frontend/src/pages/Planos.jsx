@@ -128,9 +128,14 @@ export default function Planos() {
     return d >= inicioMesAnterior && d < inicioMesAtual;
   }).length;
 
-  if (mesAnterior === 0) return mesAtual > 0 ? 100 : 0;
+  let percentual;
+  if (mesAnterior === 0) {
+    percentual = mesAtual > 0 ? 100 : 0;
+  } else {
+    percentual = Math.round(((mesAtual - mesAnterior) / mesAnterior) * 100);
+  }
 
-  return Math.round(((mesAtual - mesAnterior) / mesAnterior) * 100);
+  return { percentual, mesAtual, mesAnterior };
 }, [matriculas]);
 
   function formatarMoeda(valor) {
@@ -156,16 +161,19 @@ export default function Planos() {
       .toUpperCase();
   }
 
-  function statusExibicao(m) {
-  if ((m.status || "").toLowerCase() === "cancelada") return "Cancelada";
+function statusExibicao(m) {
+  const status = (m.status || "").toLowerCase();
+
+  if (status.startsWith("cancelad")) return "Cancelada";
+  if (status === "inadimplente") return "Inadimplente";
+  if (status === "inativo") return "Inativo";
 
   const dias = (new Date(m.data_fim) - new Date()) / 86400000;
+  if (status === "ativo" && dias >= 0 && dias <= 15) return "Vencendo";
+  if (status === "ativo") return "Ativa";
 
-  if (dias >= 0 && dias <= 15) return "Vencendo";
-
-  return "Ativa";
+  return "Outro";
 }
-
   function abrirNovoPlano() {
     setPlanoEditando(null);
     setDadosPlano(planoInicial);
@@ -305,53 +313,55 @@ export default function Planos() {
           </button>
         </header>
 
-        <section className="stats-grid">
-          <article className="stat-card planos-stat-card">
-            <div>
-              <span>Total de Planos</span>
-              <strong>{totalPlanos}</strong>
-              <small className="positivo">Planos cadastrados</small>
-            </div>
-            <div className="stat-icon stat-blue">
-              <CreditCard size={22} />
-            </div>
-          </article>
+       <section className="stats-grid">
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Total de Planos</span>
+      <strong>{totalPlanos}</strong>
+      <small className="positivo">Planos cadastrados</small>
+    </div>
+    <div className="stat-icon stat-blue">
+      <CreditCard size={22} />
+    </div>
+  </article>
 
-          <article className="stat-card planos-stat-card">
-            <div>
-              <span>Matrículas Ativas</span>
-              <strong>{matriculasAtivas}</strong>
-              <small className="positivo">Alunos matriculados</small>
-            </div>
-            <div className="stat-icon stat-green">
-              <Users size={22} />
-            </div>
-          </article>
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Matrículas Ativas</span>
+      <strong>{matriculasAtivas}</strong>
+      <small className="positivo">Alunos matriculados</small>
+    </div>
+    <div className="stat-icon stat-green">
+      <Users size={22} />
+    </div>
+  </article>
 
-          <article className="stat-card planos-stat-card">
-            <div>
-              <span>Vencendo em breve</span>
-              <strong>{vencendo}</strong>
-              <small className="negativo">Requer atenção</small>
-            </div>
-            <div className="stat-icon stat-amber">
-              <Calendar size={22} />
-            </div>
-          </article>
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Vencendo em breve</span>
+      <strong>{vencendo}</strong>
+      <small className="negativo">Requer atenção</small>
+    </div>
+    <div className="stat-icon stat-amber">
+      <Calendar size={22} />
+    </div>
+  </article>
 
-          <article className="stat-card planos-stat-card">
-          <div>
-            <span>Crescimento</span>
-            <strong>{crescimento >= 0 ? `+${crescimento}%` : `${crescimento}%`}</strong>
-            <small className={crescimento >= 0 ? "positivo" : "negativo"}>
-              vs. mês anterior
-            </small>
-          </div>
-          <div className="stat-icon stat-green">
-            <TrendingUp size={22} />
-          </div>
-        </article>
-      </section>
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Crescimento</span>
+      <strong>
+        {crescimento.percentual >= 0 ? `+${crescimento.percentual}%` : `${crescimento.percentual}%`}
+      </strong>
+      <small className={crescimento.percentual >= 0 ? "positivo" : "negativo"}>
+        {crescimento.mesAtual} este mês (vs. {crescimento.mesAnterior} anterior)
+      </small>
+    </div>
+    <div className="stat-icon stat-green">
+      <TrendingUp size={22} />
+    </div>
+  </article>
+</section>
 
       <section className="planos-section">
   <div className="section-title-row">
