@@ -1,37 +1,54 @@
-/**
- * Serviço financeiro do GymIO.
- *
- * BACK-END:
- * Substituir as funções abaixo pelas chamadas HTTP da API
- * quando as rotas financeiras forem disponibilizadas pelo grupo.
- */
+const API_URL = "http://localhost:3002/api/financeiro";
+
+async function request(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || "Não foi possível realizar a operação."
+    );
+  }
+
+  return data;
+}
 
 export async function listarTransacoes() {
-  // BACK-END: GET /transacoes
-  return [];
+  return request(`${API_URL}/transacoes`);
 }
 
 export async function criarTransacao(dados) {
-  // BACK-END: POST /transacoes
-  return dados;
+  return request(`${API_URL}/transacoes`, {
+    method: "POST",
+    body: JSON.stringify(dados),
+  });
 }
 
 export async function atualizarTransacao(id, dados) {
-  // BACK-END: PUT ou PATCH /transacoes/:id
-  return { id, ...dados };
+  return request(`${API_URL}/transacoes/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
 }
 
 export async function excluirTransacao(id) {
-  // BACK-END: DELETE /transacoes/:id
-  return id;
+  return request(`${API_URL}/transacoes/${id}`, {
+    method: "DELETE",
+  });
 }
 
 export async function buscarResumoFinanceiro() {
-  // BACK-END: GET /financeiro/resumo
-  return {
-    receber: 0,
-    pagar: 0,
-    saldo: 0,
-    despesasFixas: 0,
-  };
+  return request(`${API_URL}/resumo`);
+}
+
+export async function buscarGraficoFinanceiro() {
+  return request(`${API_URL}/grafico`);
 }
