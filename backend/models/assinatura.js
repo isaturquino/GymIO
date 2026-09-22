@@ -184,6 +184,40 @@ class Assinatura {
 
   }
 
+  static async atualizar(id, dados){
+
+    const {
+      plano_id,
+      status_assinatura
+    } = dados;
+
+    const query = `
+      UPDATE assinatura
+      SET
+      plano_id=$1,
+      status_assinatura=$2
+
+      WHERE id=$3
+
+      RETURNING *
+    `;
+
+    const valores = [
+      plano_id,
+      status_assinatura,
+      id
+    ];
+
+    const { rows } =
+      await pool.query(
+        query,
+        valores
+      );
+
+    return rows[0];
+
+  }
+
 }
 
 module.exports = Assinatura;

@@ -36,16 +36,17 @@ export default function Planos() {
   };
 
   const matriculaInicial = {
-    aluno: "",
-    plano: "",
-    dataInicio: "",
-    dataFim: "",
-    valor: "",
-    status: "Ativa",
-  };
+  aluno_id: "",
+  plano_id: "",
+  dataInicio: "",
+  dataFim: "",
+  valor: "",
+  status: "Ativa",
+};
 
   const [planos, setPlanos] = useState([]);
   const [matriculas, setMatriculas] = useState([]);
+  const [alunos, setAlunos] = useState([]);
   const [busca, setBusca] = useState("");
   const [mostrarTodosPlanos, setMostrarTodosPlanos] = useState(false);
 
@@ -67,6 +68,15 @@ export default function Planos() {
         await response.json();
 
       setMatriculas(matriculasData);
+
+      const pessoasResponse = await fetch(
+        "http://localhost:3002/api/pessoas"
+      );
+
+      const pessoasData =
+        await pessoasResponse.json();
+
+      setAlunos(pessoasData.filter((p) => p.isAluno));
 
     } catch(err){
 
@@ -233,37 +243,63 @@ function statusExibicao(m) {
   }
 
   function abrirEditarMatricula(matricula) {
-    setMatriculaEditando(matricula);
-    setDadosMatricula(matricula);
-    setModalMatriculaAberto(true);
-  }
+  setMatriculaEditando(matricula);
+  setDadosMatricula({
+    aluno_id: matricula.aluno_id,
+    plano_id: matricula.plano_id,
+    status: matricula.status,
+  });
+  setModalMatriculaAberto(true);
+}
 
-  function salvarMatricula() {
+  async function salvarMatricula() {
+  try {
+    const payload = {
+      aluno_id: dadosMatricula.aluno_id,
+      plano_id: dadosMatricula.plano_id,
+    };
+
+    let response;
+
     if (matriculaEditando) {
-      setMatriculas((lista) =>
-        lista.map((m) =>
-          m.id === matriculaEditando.id
-            ? {
-                ...dadosMatricula,
-                id: matriculaEditando.id,
-                valor: Number(dadosMatricula.valor),
-              }
-            : m
-        )
+      payload.status_assinatura = dadosMatricula.status;
+
+      response = await fetch(
+        `http://localhost:3002/api/planos/matriculas/${matriculaEditando.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
       );
     } else {
-      setMatriculas((lista) => [
-        ...lista,
+      response = await fetch(
+        "http://localhost:3002/api/planos/matriculas",
         {
-          ...dadosMatricula,
-          id: Date.now(),
-          valor: Number(dadosMatricula.valor),
-        },
-      ]);
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
     }
 
+    if (!response.ok) {
+      const erro = await response.json();
+      console.error("Erro ao salvar matrícula:", erro);
+      return;
+    }
+
+    const matriculasAtualizadas = await fetch(
+      "http://localhost:3002/api/planos/matriculas"
+    );
+
+    setMatriculas(await matriculasAtualizadas.json());
+
     setModalMatriculaAberto(false);
+  } catch (err) {
+    console.error("Erro ao salvar matrícula:", err);
   }
+}
 
   function confirmarExclusao(tipo, item) {
     setItemExcluir({ tipo, item });
@@ -569,37 +605,40 @@ function statusExibicao(m) {
             <div className="modal-grid">
               <div className="input-group input-full">
                 <label>Aluno *</label>
-                <input
-                  value={dadosMatricula.aluno}
+                <select
+                  value={dadosMatricula.aluno_id || ""}
                   onChange={(e) =>
                     setDadosMatricula({
                       ...dadosMatricula,
-                      aluno: e.target.value,
+                      aluno_id: e.target.value,
                     })
                   }
-                  placeholder="Nome do aluno"
-                />
+                >
+                  <option value="">Selecione</option>
+                  {alunos.map((aluno) => (
+                    <option key={aluno.aluno_id} value={aluno.aluno_id}>
+                      {aluno.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="input-group">
                 <label>Plano *</label>
                 <select
-                  value={dadosMatricula.plano}
+                  value={dadosMatricula.plano_id || ""}
                   onChange={(e) =>
                     setDadosMatricula({
                       ...dadosMatricula,
-                      plano: e.target.value,
+                      plano_id: e.target.value,
                     })
                   }
                 >
                   <option value="">Selecione</option>
                   {planos.map((plano) => (
-                    <option
-  key={plano.id}
-  value={plano.nome_plano}
->
-   {plano.nome_plano}
-</option>
+                    <option key={plano.id} value={plano.id}>
+                      {plano.nome_plano}
+                    </option>
                   ))}
                 </select>
               </div>
