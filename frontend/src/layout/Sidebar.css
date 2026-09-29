@@ -1,11 +1,13 @@
 .gymio-sidebar {
   width: 200px;
   min-width: 200px;
-  min-height: 100vh;
+  height: 100vh;
   background: #1a1f2e;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
 }
 
 .gymio-sidebar__brand {

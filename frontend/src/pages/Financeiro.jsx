@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../layout/Sidebar";
 import "../styles/financeiro.css";
+import { Plus } from "lucide-react";
 
 import {
   listarTransacoes,
@@ -382,14 +383,13 @@ function Financeiro() {
             <p>Gestão de contas a pagar e receber</p>
           </div>
 
-          <button
-            className="btn btn--primary"
-            onClick={openNewModal}
-          >
-            <span>＋</span>
-            Nova Transação
-            <span>⌄</span>
-          </button>
+          <button 
+  className="btn btn--primary" 
+  onClick={openNewModal}
+>
+  <Plus size={16} />
+  Nova Transação
+</button>
         </header>
 
         {/* ================================================== */}

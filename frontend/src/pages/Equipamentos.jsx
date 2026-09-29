@@ -218,7 +218,7 @@ export default function Equipamentos() {
             <p>Gestão de máquinas e manutenção</p>
           </div>
 
-          <button className="btn-novo" onClick={() => setModalNovo(true)}>
+          <button className="btn btn--primary btn--lg" onClick={() => setModalNovo(true)}>
             <Plus size={18} /> Novo Equipamento
           </button>
         </div>
