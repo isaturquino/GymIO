@@ -495,10 +495,58 @@ async function excluirTransacao(req, res) {
   }
 }
 
+
+// ============================================================
+// BUSCAR ALUNOS PARA O FINANCEIRO
+// ============================================================
+
+async function buscarAlunosFinanceiro(req, res) {
+  try {
+    const nome = (req.query.nome || "").trim();
+
+    if (!nome) {
+      return res.json([]);
+    }
+
+    const { rows } = await pool.query(
+      `
+      SELECT
+        a.id AS aluno_id,
+        p.nome,
+        p.cpf
+      FROM public.aluno a
+      INNER JOIN public.pessoa p
+        ON p.id = a.pessoa_id
+      WHERE a.deleted_at IS NULL
+        AND p.deleted_at IS NULL
+        AND p.nome ILIKE $1
+      ORDER BY p.nome ASC
+      LIMIT 10
+      `,
+      [`%${nome}%`]
+    );
+
+    return res.json(
+      rows.map((aluno) => ({
+        id: aluno.aluno_id,
+        nome: aluno.nome,
+        cpf: aluno.cpf || "",
+      }))
+    );
+  } catch (error) {
+    console.error("Erro ao buscar alunos para o Financeiro:", error);
+
+    return res.status(500).json({
+      message: "Erro ao buscar alunos.",
+    });
+  }
+}
+
 module.exports = {
   listarTransacoes,
   buscarResumoFinanceiro,
   buscarGraficoFinanceiro,
+  buscarAlunosFinanceiro,
   criarTransacao,
   atualizarTransacao,
   excluirTransacao,
