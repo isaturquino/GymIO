@@ -36,17 +36,19 @@ export default function Planos() {
   };
 
   const matriculaInicial = {
-    aluno: "",
-    plano: "",
-    dataInicio: "",
-    dataFim: "",
-    valor: "",
-    status: "Ativa",
-  };
+  aluno_id: "",
+  plano_id: "",
+  dataInicio: "",
+  dataFim: "",
+  valor: "",
+  status: "Ativa",
+};
 
   const [planos, setPlanos] = useState([]);
   const [matriculas, setMatriculas] = useState([]);
+  const [alunos, setAlunos] = useState([]);
   const [busca, setBusca] = useState("");
+  const [mostrarTodosPlanos, setMostrarTodosPlanos] = useState(false);
 
   useEffect(() => {
 
@@ -66,6 +68,15 @@ export default function Planos() {
         await response.json();
 
       setMatriculas(matriculasData);
+
+      const pessoasResponse = await fetch(
+        "http://localhost:3002/api/pessoas"
+      );
+
+      const pessoasData =
+        await pessoasResponse.json();
+
+      setAlunos(pessoasData.filter((p) => p.isAluno));
 
     } catch(err){
 
@@ -100,14 +111,42 @@ export default function Planos() {
     return (
       (item.aluno ?? "").toLowerCase().includes(termo) ||
       (item.plano ?? "").toLowerCase().includes(termo) ||
-      (item.status ?? "").toLowerCase().includes(termo)
+      statusExibicao(item).toLowerCase().includes(termo)
     );
   });
 }, [busca, matriculas]);
 
+  const LIMITE_PLANOS = 6;
+  const planosExibidos = mostrarTodosPlanos ? planos : planos.slice(0, LIMITE_PLANOS);
+
   const totalPlanos = planos.length;
-  const matriculasAtivas = matriculas.filter((m) => m.status === "Ativa").length;
-  const vencendo = matriculas.filter((m) => m.status === "Vencendo").length;
+  const matriculasAtivas = matriculas.filter((m) => statusExibicao(m) === "Ativa").length;
+  
+  const vencendo = matriculas.filter((m) => statusExibicao(m) === "Vencendo").length;
+
+  const crescimento = useMemo(() => {
+  const hoje = new Date();
+  const inicioMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const inicioMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+
+  const mesAtual = matriculas.filter(
+    (m) => new Date(m.data_assinatura) >= inicioMesAtual
+  ).length;
+
+  const mesAnterior = matriculas.filter((m) => {
+    const d = new Date(m.data_assinatura);
+    return d >= inicioMesAnterior && d < inicioMesAtual;
+  }).length;
+
+  let percentual;
+  if (mesAnterior === 0) {
+    percentual = mesAtual > 0 ? 100 : 0;
+  } else {
+    percentual = Math.round(((mesAtual - mesAnterior) / mesAnterior) * 100);
+  }
+
+  return { percentual, mesAtual, mesAnterior };
+}, [matriculas]);
 
   function formatarMoeda(valor) {
     return Number(valor || 0).toLocaleString("pt-BR", {
@@ -132,6 +171,19 @@ export default function Planos() {
       .toUpperCase();
   }
 
+function statusExibicao(m) {
+  const status = (m.status || "").toLowerCase();
+
+  if (status.startsWith("cancelad")) return "Cancelada";
+  if (status === "inadimplente") return "Inadimplente";
+  if (status === "inativo") return "Inativo";
+
+  const dias = (new Date(m.data_fim) - new Date()) / 86400000;
+  if (status === "ativo" && dias >= 0 && dias <= 15) return "Vencendo";
+  if (status === "ativo") return "Ativa";
+
+  return "Outro";
+}
   function abrirNovoPlano() {
     setPlanoEditando(null);
     setDadosPlano(planoInicial);
@@ -191,37 +243,63 @@ export default function Planos() {
   }
 
   function abrirEditarMatricula(matricula) {
-    setMatriculaEditando(matricula);
-    setDadosMatricula(matricula);
-    setModalMatriculaAberto(true);
-  }
+  setMatriculaEditando(matricula);
+  setDadosMatricula({
+    aluno_id: matricula.aluno_id,
+    plano_id: matricula.plano_id,
+    status: matricula.status,
+  });
+  setModalMatriculaAberto(true);
+}
 
-  function salvarMatricula() {
+  async function salvarMatricula() {
+  try {
+    const payload = {
+      aluno_id: dadosMatricula.aluno_id,
+      plano_id: dadosMatricula.plano_id,
+    };
+
+    let response;
+
     if (matriculaEditando) {
-      setMatriculas((lista) =>
-        lista.map((m) =>
-          m.id === matriculaEditando.id
-            ? {
-                ...dadosMatricula,
-                id: matriculaEditando.id,
-                valor: Number(dadosMatricula.valor),
-              }
-            : m
-        )
+      payload.status_assinatura = dadosMatricula.status;
+
+      response = await fetch(
+        `http://localhost:3002/api/planos/matriculas/${matriculaEditando.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
       );
     } else {
-      setMatriculas((lista) => [
-        ...lista,
+      response = await fetch(
+        "http://localhost:3002/api/planos/matriculas",
         {
-          ...dadosMatricula,
-          id: Date.now(),
-          valor: Number(dadosMatricula.valor),
-        },
-      ]);
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
     }
 
+    if (!response.ok) {
+      const erro = await response.json();
+      console.error("Erro ao salvar matrícula:", erro);
+      return;
+    }
+
+    const matriculasAtualizadas = await fetch(
+      "http://localhost:3002/api/planos/matriculas"
+    );
+
+    setMatriculas(await matriculasAtualizadas.json());
+
     setModalMatriculaAberto(false);
+  } catch (err) {
+    console.error("Erro ao salvar matrícula:", err);
   }
+}
 
   function confirmarExclusao(tipo, item) {
     setItemExcluir({ tipo, item });
@@ -271,113 +349,127 @@ export default function Planos() {
           </button>
         </header>
 
-        <section className="stats-grid">
-          <article className="stat-card planos-stat-card">
-            <div>
-              <span>Total de Planos</span>
-              <strong>{totalPlanos}</strong>
-              <small className="positivo">Planos cadastrados</small>
-            </div>
-            <div className="stat-icon stat-blue">
-              <CreditCard size={22} />
-            </div>
-          </article>
+       <section className="stats-grid">
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Total de Planos</span>
+      <strong>{totalPlanos}</strong>
+      <small className="positivo">Planos cadastrados</small>
+    </div>
+    <div className="stat-icon stat-blue">
+      <CreditCard size={22} />
+    </div>
+  </article>
 
-          <article className="stat-card planos-stat-card">
-            <div>
-              <span>Matrículas Ativas</span>
-              <strong>{matriculasAtivas}</strong>
-              <small className="positivo">Alunos matriculados</small>
-            </div>
-            <div className="stat-icon stat-green">
-              <Users size={22} />
-            </div>
-          </article>
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Matrículas Ativas</span>
+      <strong>{matriculasAtivas}</strong>
+      <small className="positivo">Alunos matriculados</small>
+    </div>
+    <div className="stat-icon stat-green">
+      <Users size={22} />
+    </div>
+  </article>
 
-          <article className="stat-card planos-stat-card">
-            <div>
-              <span>Vencendo em breve</span>
-              <strong>{vencendo}</strong>
-              <small className="negativo">Requer atenção</small>
-            </div>
-            <div className="stat-icon stat-amber">
-              <Calendar size={22} />
-            </div>
-          </article>
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Vencendo em breve</span>
+      <strong>{vencendo}</strong>
+      <small className="negativo">Requer atenção</small>
+    </div>
+    <div className="stat-icon stat-amber">
+      <Calendar size={22} />
+    </div>
+  </article>
 
-          <article className="stat-card planos-stat-card">
-            <div>
-              <span>Crescimento</span>
-              <strong>+15%</strong>
-              <small className="positivo">vs. mês anterior</small>
-            </div>
-            <div className="stat-icon stat-green">
-              <TrendingUp size={22} />
-            </div>
-          </article>
-        </section>
+  <article className="stat-card planos-stat-card">
+    <div>
+      <span>Crescimento</span>
+      <strong>
+        {crescimento.percentual >= 0 ? `+${crescimento.percentual}%` : `${crescimento.percentual}%`}
+      </strong>
+      <small className={crescimento.percentual >= 0 ? "positivo" : "negativo"}>
+        {crescimento.mesAtual} este mês (vs. {crescimento.mesAnterior} anterior)
+      </small>
+    </div>
+    <div className="stat-icon stat-green">
+      <TrendingUp size={22} />
+    </div>
+  </article>
+</section>
 
-        <section className="planos-section">
-          <div className="section-title-row">
-            <div>
-              <h2>Planos Disponíveis</h2>
-              <p>Visualize e edite os planos da academia</p>
-            </div>
+      <section className="planos-section">
+  <div className="section-title-row">
+    <div>
+      <h2>Planos Disponíveis</h2>
+      <p>Visualize e edite os planos da academia</p>
+    </div>
+  </div>
+
+  <div className="planos-grid">
+    {planosExibidos.map((plano) => (
+      <article
+        key={plano.id}
+        className={`plano-card ${plano.popular ? "popular" : ""}`}
+      >
+        {plano.popular && (
+          <div className="popular-badge">
+            <Star size={12} />
+            Popular
+          </div>
+        )}
+
+        <div className="plano-card-top">
+          <div className="plano-icon">
+            <CreditCard size={20} />
           </div>
 
-          <div className="planos-grid">
-            {planos.map((plano) => (
-              <article
-                key={plano.id}
-                className={`plano-card ${plano.popular ? "popular" : ""}`}
-              >
-                {plano.popular && (
-                  <div className="popular-badge">
-                    <Star size={12} />
-                    Popular
-                  </div>
-                )}
+          <div className="table-actions">
+            <button
+              className="action-btn edit"
+              onClick={() => abrirEditarPlano(plano)}
+            >
+              <Pencil size={14} />
+            </button>
 
-                <div className="plano-card-top">
-                  <div className="plano-icon">
-                    <CreditCard size={20} />
-                  </div>
-
-                  <div className="table-actions">
-                    <button
-                      className="action-btn edit"
-                      onClick={() => abrirEditarPlano(plano)}
-                    >
-                      <Pencil size={14} />
-                    </button>
-
-                    <button
-                      className="action-btn delete"
-                      onClick={() => confirmarExclusao("plano", plano)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                <h3>{plano.nome_plano}</h3>
-                <p>{plano.descricao}</p>
-
-                <div className="plano-preco">
-                  {formatarMoeda(plano.valor)}
-                  <span>/{plano.duracao_meses} meses</span>
-                </div>
-
-                <div className="plano-info">
-                  <span>Plano ativo</span>
-                  <span className="badge status-ativo">
-   Ativo
-</span>
-                </div>
-              </article>
-            ))}
+            <button
+              className="action-btn delete"
+              onClick={() => confirmarExclusao("plano", plano)}
+            >
+              <Trash2 size={14} />
+            </button>
           </div>
-        </section>
+        </div>
+
+        <h3>{plano.nome_plano}</h3>
+        <p>{plano.descricao}</p>
+
+        <div className="plano-preco">
+          {formatarMoeda(plano.valor)}
+          <span>/{plano.duracao_meses} meses</span>
+        </div>
+
+        <div className="plano-info">
+          <span>Plano ativo</span>
+          <span className="badge status-ativo">
+            Ativo
+          </span>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  {planos.length > LIMITE_PLANOS && (
+    <button
+      className="btn btn--outline"
+      onClick={() => setMostrarTodosPlanos((v) => !v)}
+      style={{ marginTop: "16px" }}
+    >
+      {mostrarTodosPlanos ? "Mostrar menos" : `Ver todos os ${planos.length} planos`}
+    </button>
+  )}
+</section>
 
        
       </main>
@@ -513,37 +605,40 @@ export default function Planos() {
             <div className="modal-grid">
               <div className="input-group input-full">
                 <label>Aluno *</label>
-                <input
-                  value={dadosMatricula.aluno}
+                <select
+                  value={dadosMatricula.aluno_id || ""}
                   onChange={(e) =>
                     setDadosMatricula({
                       ...dadosMatricula,
-                      aluno: e.target.value,
+                      aluno_id: e.target.value,
                     })
                   }
-                  placeholder="Nome do aluno"
-                />
+                >
+                  <option value="">Selecione</option>
+                  {alunos.map((aluno) => (
+                    <option key={aluno.aluno_id} value={aluno.aluno_id}>
+                      {aluno.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="input-group">
                 <label>Plano *</label>
                 <select
-                  value={dadosMatricula.plano}
+                  value={dadosMatricula.plano_id || ""}
                   onChange={(e) =>
                     setDadosMatricula({
                       ...dadosMatricula,
-                      plano: e.target.value,
+                      plano_id: e.target.value,
                     })
                   }
                 >
                   <option value="">Selecione</option>
                   {planos.map((plano) => (
-                    <option
-  key={plano.id}
-  value={plano.nome_plano}
->
-   {plano.nome_plano}
-</option>
+                    <option key={plano.id} value={plano.id}>
+                      {plano.nome_plano}
+                    </option>
                   ))}
                 </select>
               </div>

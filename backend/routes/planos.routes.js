@@ -39,6 +39,11 @@ router.post(
   PlanosController.criarMatricula
 );
 
+router.put(
+"/matriculas/:id",
+PlanosController.atualizarMatricula
+);
+
 router.patch(
   "/matriculas/:id/cancelar",
   PlanosController.cancelarMatricula

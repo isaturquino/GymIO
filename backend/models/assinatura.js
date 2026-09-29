@@ -4,11 +4,17 @@ class Assinatura {
 
   static async listar(){
 
-    const query = `
-      SELECT
-      a.*,
-      p.nome AS aluno_nome,
-      pl.nome_plano
+  const query = `
+    SELECT
+      a.id,
+      a.aluno_id,
+      a.plano_id,
+      a.data_inicio,
+      a.data_fim,
+      a.status_assinatura AS status,
+      a.data_assinatura,
+      p.nome AS aluno,
+      pl.nome_plano AS plano
 
       FROM assinatura a
 
@@ -24,15 +30,12 @@ class Assinatura {
       WHERE a.deleted_at IS NULL
 
       ORDER BY a.data_inicio DESC
-    `;
+  `;
 
-    const { rows } =
-      await pool.query(query);
+  const { rows } = await pool.query(query);
 
-    return rows;
-
-  }
-
+  return rows;
+}
 
   static async alunoPossuiAtiva(
     aluno_id
@@ -43,7 +46,7 @@ class Assinatura {
       FROM assinatura
 
       WHERE aluno_id=$1
-      AND status_assinatura='ativa'
+      AND status_assinatura ILIKE 'Ativo'
       AND deleted_at IS NULL
     `;
 
@@ -102,7 +105,7 @@ class Assinatura {
         $2,
         CURRENT_DATE,
         CURRENT_DATE + ($3 || ' month')::INTERVAL,
-        'ativa',
+        'Ativo',
         CURRENT_DATE
       )
 
@@ -128,7 +131,7 @@ class Assinatura {
 
     const query = `
       UPDATE assinatura
-      SET status_assinatura='cancelada'
+      SET status_assinatura='Cancelado'
 
       WHERE id=$1
 
@@ -164,7 +167,7 @@ class Assinatura {
         ) || ' month'
       )::INTERVAL,
 
-      status_assinatura='ativa'
+      status_assinatura='Ativo'
 
       WHERE id=$1
 
@@ -175,6 +178,40 @@ class Assinatura {
       await pool.query(
         query,
         [id]
+      );
+
+    return rows[0];
+
+  }
+
+  static async atualizar(id, dados){
+
+    const {
+      plano_id,
+      status_assinatura
+    } = dados;
+
+    const query = `
+      UPDATE assinatura
+      SET
+      plano_id=$1,
+      status_assinatura=$2
+
+      WHERE id=$3
+
+      RETURNING *
+    `;
+
+    const valores = [
+      plano_id,
+      status_assinatura,
+      id
+    ];
+
+    const { rows } =
+      await pool.query(
+        query,
+        valores
       );
 
     return rows[0];

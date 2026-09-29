@@ -192,26 +192,52 @@ class PlanosController {
 
   static async cancelarMatricula(req,res){
 
-    try{
+  try{
 
-      const { id } = req.params;
+    const { id } = req.params;
 
-      const matricula =
-      await Assinatura.cancelar(id);
+    const matricula =
+    await Assinatura.cancelar(id);
 
-      return res.status(200).json(matricula);
+    return res.status(200).json(matricula);
 
-    }catch(error){
+  }catch(error){
 
-      console.error(error);
+    console.error(error);
 
-      return res.status(500).json({
-        erro:"Erro ao cancelar"
-      });
-
-    }
+    return res.status(500).json({
+    erro:"Erro ao cancelar"
+    });
 
   }
+
+}
+
+static async atualizarMatricula(req,res){
+
+  try{
+
+    const { id } = req.params;
+
+    const matricula =
+    await Assinatura.atualizar(
+      id,
+      req.body
+    );
+
+    return res.status(200).json(matricula);
+
+  }catch(error){
+
+    console.error(error);
+
+    return res.status(500).json({
+    erro:"Erro ao atualizar matrícula"
+    });
+
+  }
+
+}
 
   static async renovarMatricula(req,res){
 

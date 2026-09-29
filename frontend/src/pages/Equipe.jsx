@@ -195,7 +195,8 @@ export default function Equipe() {
               </div>
             </div>
 
-            <table>
+            <div className="equipe-table-wrapper">
+              <table className="equipe-table">
               <thead>
                 <tr>
                   <th>Funcionário</th>
@@ -293,7 +294,8 @@ export default function Equipe() {
                     </tr>
                   ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
 
           <div className="side-info">

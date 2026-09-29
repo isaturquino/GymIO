@@ -74,6 +74,7 @@ exports.getPessoas = async (req, res) => {
 
         // ALUNO
         isAluno: !!aluno,
+        aluno_id: aluno?.id || null,
         matricula: aluno?.data_matricula || "-",
 
         // PLANO

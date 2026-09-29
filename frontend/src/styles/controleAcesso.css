@@ -341,9 +341,20 @@
    TABELA
 =================================== */
 
+.acessos-table-wrapper {
+  height: 350px;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+}
+
 .acessos-table {
   width: 100%;
   border-collapse: collapse;
+}
+
+.acessos-table thead {
+  background: white;
 }
 
 .acessos-table th {
@@ -355,6 +366,13 @@
   font-size: 13px;
 
   border-bottom: 1px solid #e5e7eb;
+}
+
+.acessos-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: white;
 }
 
 .acessos-table td {
