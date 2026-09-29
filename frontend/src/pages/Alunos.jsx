@@ -1,12 +1,10 @@
 import React, { useMemo, useState, useEffect } from "react";
 import Sidebar from "../layout/Sidebar";
-import ModalCadastroPessoa from "../components/ModalCadastroPessoa";
 import ModalPerfil from "../components/ModalPerfil";
 import "../styles/alunos.css";
 import "../styles/globals.css";
 
 import {
-  Plus,
   Search,
   Users,
   TrendingUp,
@@ -19,26 +17,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-const API = "http://localhost:3002/api/pessoas";
+import api from "../services/api";
 
-const alunoInicial = {
-  nome: "",
-  cpf: "",
-  telefone: "",
-  email: "",
-  dataNascimento: "",
-  endereco: "",
-  plano_id: "",
-  status: "Ativo",
-  matricula: "",
-  senha: "",
-  isAluno: true,
-  isFuncionario: false,
-  dataMatricula: "",
-  cargo_id: "",
-  dataAdmissao: "",
-  salario: "",
-};
+const API = "/pessoas";
+
 
 export default function Alunos() {
   const [alunos, setAlunos] = useState([]);
@@ -54,53 +36,147 @@ export default function Alunos() {
   });
 
   const [filtroStatus, setFiltroStatus] = useState("Todos");
-  const [modalAdicionarAberto, setModalAdicionarAberto] = useState(false);
-  const [novoAluno, setNovoAluno] = useState(alunoInicial);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [alunoEditando, setAlunoEditando] = useState(null);
+  const [alunoVisualizando, setAlunoVisualizando] = useState(null);
   const [senhaVisivelId, setSenhaVisivelId] = useState(null);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [alunoExcluindo, setAlunoExcluindo] = useState(null);
+
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const alunosPorPagina = 10;
 
   useEffect(() => {
     carregarDados();
   }, []);
 
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [busca, filtroStatus]);
+
   async function carregarDados() {
     try {
       const [alunosRes, totalRes, planosRes, cargosRes] = await Promise.all([
-        fetch(`${API}?tipo=aluno`),
-        fetch(`${API}/total-alunos`),
-        fetch(`${API}/planos`),
-        fetch(`${API}/cargos`),
+        api.get(`${API}?tipo=aluno`),
+        api.get(`${API}/total-alunos`),
+        api.get(`${API}/planos`),
+        api.get(`${API}/cargos`),
       ]);
 
-      const alunosData = await alunosRes.json();
-      const totalData = await totalRes.json();
-      const planosData = await planosRes.json();
-      const cargosData = await cargosRes.json();
+      const alunosData = alunosRes.data;
+      const totalData = totalRes.data;
+      const planosData = planosRes.data;
+      const cargosData = cargosRes.data;
 
-      setAlunos(Array.isArray(alunosData) ? alunosData : []);
+      const listaAlunos = Array.isArray(alunosData) ? alunosData : [];
+
+      setAlunos(listaAlunos);
       setPlanos(Array.isArray(planosData) ? planosData : []);
       setCargos(Array.isArray(cargosData) ? cargosData : []);
 
-      setStats((prev) => ({
-        ...prev,
-        total: totalData.totalAlunos || 0,
-      }));
+      const agora = new Date();
+      const mesAtual = agora.getMonth();
+      const anoAtual = agora.getFullYear();
+
+      const novosMes = listaAlunos.filter((aluno) => {
+        const data =
+          aluno.dataMatricula ||
+          aluno.data_matricula ||
+          aluno.dataCadastro ||
+          aluno.data_cadastro;
+
+        if (!data) return false;
+
+        const dataAluno = new Date(data);
+
+        return (
+          dataAluno.getMonth() === mesAtual &&
+          dataAluno.getFullYear() === anoAtual
+        );
+      }).length;
+
+      const cancelamentos = listaAlunos.filter((aluno) => {
+        const status =
+          aluno.status_assinatura ||
+          aluno.status ||
+          "";
+
+        return status.toLowerCase() === "cancelado";
+      }).length;
+
+      const total = totalData?.totalAlunos ?? listaAlunos.length;
+
+      setStats({
+        total,
+        novosMes,
+        cancelamentos,
+        crescimento: total > 0 ? ((novosMes / total) * 100).toFixed(1) : 0,
+      });
     } catch (err) {
       console.error("Erro ao carregar dados:", err);
+
       setAlunos([]);
       setPlanos([]);
       setCargos([]);
+
+      setStats({
+        total: 0,
+        novosMes: 0,
+        cancelamentos: 0,
+        crescimento: 0,
+      });
     }
   }
 
   async function recarregarAlunos() {
     try {
-      const res = await fetch(`${API}?tipo=aluno`);
-      const data = await res.json();
-      setAlunos(Array.isArray(data) ? data : []);
+      const res = await api.get(`${API}?tipo=aluno`);
+      const data = res.data;
+
+      const listaAlunos = Array.isArray(data) ? data : [];
+
+      setAlunos(listaAlunos);
+
+      const agora = new Date();
+      const mesAtual = agora.getMonth();
+      const anoAtual = agora.getFullYear();
+
+      const novosMes = listaAlunos.filter((aluno) => {
+        const data =
+          aluno.dataMatricula ||
+          aluno.data_matricula ||
+          aluno.dataCadastro ||
+          aluno.data_cadastro;
+
+        if (!data) return false;
+
+        const dataAluno = new Date(data);
+
+        return (
+          dataAluno.getMonth() === mesAtual &&
+          dataAluno.getFullYear() === anoAtual
+        );
+      }).length;
+
+      const cancelamentos = listaAlunos.filter((aluno) => {
+        const status =
+          aluno.status_assinatura ||
+          aluno.status ||
+          "";
+
+        return status.toLowerCase() === "cancelado";
+      }).length;
+
+      setStats((prev) => ({
+        ...prev,
+        total: listaAlunos.length,
+        novosMes,
+        cancelamentos,
+        crescimento:
+          listaAlunos.length > 0
+            ? ((novosMes / listaAlunos.length) * 100).toFixed(1)
+            : 0,
+      }));
     } catch (err) {
       console.error("Erro ao recarregar alunos:", err);
       setAlunos([]);
@@ -108,102 +184,121 @@ export default function Alunos() {
   }
 
   const alunosFiltrados = useMemo(() => {
+    const termo = busca
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    const apenasNumeros = busca.replace(/\D/g, "");
+
     return alunos.filter((aluno) => {
-      const termo = busca.toLowerCase();
+      const nome = (aluno.nome || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const cpf = aluno.cpf || "";
+      const cpfNumeros = cpf.replace(/\D/g, "");
+
+      const email = (aluno.email || "").toLowerCase();
+
+      const telefone = aluno.telefone || "";
+      const telefoneNumeros = telefone.replace(/\D/g, "");
+
+      const matricula = String(aluno.matricula || "").toLowerCase();
+
+      const status = (
+        aluno.status_assinatura ||
+        aluno.status ||
+        ""
+      ).trim();
 
       const correspondeBusca =
-        (aluno.nome || "").toLowerCase().includes(termo) ||
-        (aluno.cpf || "").includes(busca) ||
-        (aluno.email || "").toLowerCase().includes(termo);
+        !termo ||
+        nome.includes(termo) ||
+        email.includes(termo) ||
+        matricula.includes(termo) ||
+        (apenasNumeros
+          ? cpfNumeros.includes(apenasNumeros) ||
+            telefoneNumeros.includes(apenasNumeros)
+          : cpf.toLowerCase().includes(termo) ||
+            telefone.toLowerCase().includes(termo));
 
       const correspondeStatus =
-        filtroStatus === "Todos" || aluno.status === filtroStatus;
+        filtroStatus === "Todos" ||
+        status.toLowerCase() === filtroStatus.toLowerCase();
 
       return correspondeBusca && correspondeStatus;
     });
   }, [alunos, busca, filtroStatus]);
 
-  async function salvarNovoAluno() {
-    try {
-      const res = await fetch(API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(novoAluno),
-      });
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(alunosFiltrados.length / alunosPorPagina)
+  );
 
-      const data = await res.json();
+  const alunosPaginados = useMemo(() => {
+    const inicio = (paginaAtual - 1) * alunosPorPagina;
 
-      if (!res.ok) {
-        console.error(data);
-        alert("Erro ao salvar aluno");
-        return;
-      }
+    return alunosFiltrados.slice(
+      inicio,
+      inicio + alunosPorPagina
+    );
+  }, [alunosFiltrados, paginaAtual]);
 
-      alert("Aluno cadastrado com sucesso!");
-      await recarregarAlunos();
-
-      setNovoAluno(alunoInicial);
-      setModalAdicionarAberto(false);
-    } catch (error) {
-      console.error(error.response?.data || error);
-
-      if (error.response?.data?.erro?.includes("pessoa_cpf_key")) {
-        alert("Já existe uma pessoa cadastrada com este CPF.");
-        return;
-      }
-
-      alert("Já existe uma pessoa cadastrada com este CPF.");
-
+  useEffect(() => {
+    if (paginaAtual > totalPaginas) {
+      setPaginaAtual(totalPaginas);
     }
-  }
+  }, [paginaAtual, totalPaginas]);
 
   function abrirEdicao(aluno) {
     setAlunoEditando({ ...aluno });
     setModalEditarAberto(true);
   }
 
+  function abrirVisualizacao(aluno) {
+    setAlunoVisualizando(aluno);
+  }
+
   async function salvarEdicao() {
     if (!alunoEditando) return;
 
     try {
-      const res = await fetch(`${API}/${alunoEditando.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nome: alunoEditando.nome,
-          cpf: alunoEditando.cpf,
-          telefone: alunoEditando.telefone,
-          email: alunoEditando.email,
-          dataNascimento:
-            alunoEditando.dataNascimento || alunoEditando.data_nascimento,
-          endereco: alunoEditando.endereco,
-          status:
-            alunoEditando.status_assinatura ||
-            alunoEditando.status,
-          plano_id: alunoEditando.plano_id,
-          senha: alunoEditando.senha,
-        }),
+      await api.put(`${API}/${alunoEditando.id}`, {
+        nome: alunoEditando.nome,
+        cpf: alunoEditando.cpf,
+        telefone: alunoEditando.telefone,
+        email: alunoEditando.email,
+        dataNascimento:
+          alunoEditando.dataNascimento ||
+          alunoEditando.data_nascimento,
+        endereco: alunoEditando.endereco,
+        status:
+          alunoEditando.status_assinatura ||
+          alunoEditando.status,
+        plano_id: alunoEditando.plano_id,
+        senha: alunoEditando.senha,
       });
 
-      const data = await res.json();
-
-
-      if (!res.ok) {
-        console.error(data);
-        alert("Erro ao editar aluno");
-        return;
-      }
-
       await recarregarAlunos();
+
       setModalEditarAberto(false);
       setAlunoEditando(null);
+
+      alert("Aluno atualizado com sucesso!");
     } catch (err) {
-      console.error("Erro ao editar aluno:", err);
-      alert("Erro de conexão com o servidor");
+      console.error(
+        "Erro ao editar aluno:",
+        err.response?.data || err
+      );
+
+      alert(
+        err.response?.data?.erro ||
+          err.response?.data?.message ||
+          "Erro ao editar aluno"
+      );
     }
   }
 
@@ -216,33 +311,39 @@ export default function Alunos() {
     if (!alunoExcluindo) return;
 
     try {
-      const res = await fetch(`${API}/${alunoExcluindo.id}`, {
-        method: "DELETE",
-      });
+      await api.delete(`${API}/${alunoExcluindo.id}`);
 
-      if (!res.ok) {
+      setAlunos((lista) =>
+        lista.filter((a) => a.id !== alunoExcluindo.id)
+      );
 
-        const erro = await res.json();
-        console.error("Erro ao excluir aluno:", erro);
-        alert(erro.erro || "Erro ao excluir aluno");
-
-        return;
-      }
-
-      setAlunos((lista) => lista.filter((a) => a.id !== alunoExcluindo.id));
       setModalExcluirAberto(false);
       setAlunoExcluindo(null);
+
+      await recarregarAlunos();
+
+      alert("Aluno excluído com sucesso!");
     } catch (err) {
-      console.error("Erro ao excluir aluno:", err);
-      alert("Erro de conexão com o servidor");
+      console.error(
+        "Erro ao excluir aluno:",
+        err.response?.data || err
+      );
+
+      alert(
+        err.response?.data?.erro ||
+          err.response?.data?.message ||
+          "Erro ao excluir aluno"
+      );
     }
   }
 
   function formatarData(data) {
     if (!data) return "-";
+
     if (data.includes("/")) return data;
 
     const [ano, mes, dia] = data.split("-");
+
     if (!ano || !mes || !dia) return data;
 
     return `${dia}/${mes}/${ano}`;
@@ -251,12 +352,12 @@ export default function Alunos() {
   function iniciais(nome = "") {
     return nome
       .split(" ")
+      .filter(Boolean)
       .map((parte) => parte[0])
       .join("")
       .slice(0, 2)
       .toUpperCase();
   }
-
 
   return (
     <div className="alunos-layout">
@@ -269,7 +370,6 @@ export default function Alunos() {
             <p>Cadastro e controle dos alunos da academia</p>
           </div>
 
-      
         </header>
 
         <section className="stats-grid">
@@ -277,6 +377,7 @@ export default function Alunos() {
             <div className="stat-icon stat-blue">
               <Users size={22} />
             </div>
+
             <div>
               <span>Total de Alunos</span>
               <strong>{stats.total}</strong>
@@ -287,10 +388,13 @@ export default function Alunos() {
             <div className="stat-icon stat-green">
               <TrendingUp size={22} />
             </div>
+
             <div>
               <span>Novos este mês</span>
               <strong>{stats.novosMes}</strong>
-              <small className="positivo">↑ 12% vs. mês anterior</small>
+              <small className="positivo">
+                Alunos cadastrados no mês
+              </small>
             </div>
           </article>
 
@@ -298,10 +402,13 @@ export default function Alunos() {
             <div className="stat-icon stat-red">
               <CircleX size={22} />
             </div>
+
             <div>
               <span>Cancelamentos</span>
               <strong>{stats.cancelamentos}</strong>
-              <small className="negativo">↑ 50% vs. mês anterior</small>
+              <small className="negativo">
+                Alunos com status cancelado
+              </small>
             </div>
           </article>
 
@@ -309,10 +416,13 @@ export default function Alunos() {
             <div className="stat-icon stat-green">
               <TrendingUp size={22} />
             </div>
+
             <div>
               <span>Taxa de Crescimento</span>
               <strong>+{stats.crescimento}%</strong>
-              <small className="positivo">↑ 8% vs. mês anterior</small>
+              <small className="positivo">
+                Novos alunos / total
+              </small>
             </div>
           </article>
         </section>
@@ -321,6 +431,7 @@ export default function Alunos() {
           <div className="toolbar">
             <div className="search-box">
               <Search size={18} />
+
               <input
                 type="text"
                 placeholder="Buscar aluno por nome, CPF ou e-mail..."
@@ -330,17 +441,22 @@ export default function Alunos() {
             </div>
 
             <div className="filters">
-              {["Todos", "Ativo", "Inadimplente", "Cancelado"].map(
-                (status) => (
-                  <button
-                    key={status}
-                    className={filtroStatus === status ? "active" : ""}
-                    onClick={() => setFiltroStatus(status)}
-                  >
-                    {status === "Ativo" ? "Ativos" : status}
-                  </button>
-                )
-              )}
+              {[
+                "Todos",
+                "Ativo",
+                "Inadimplente",
+                "Cancelado",
+              ].map((status) => (
+                <button
+                  key={status}
+                  className={
+                    filtroStatus === status ? "active" : ""
+                  }
+                  onClick={() => setFiltroStatus(status)}
+                >
+                  {status === "Ativo" ? "Ativos" : status}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -363,129 +479,167 @@ export default function Alunos() {
               </thead>
 
               <tbody>
-                {alunosFiltrados.map((aluno) => (
-                  <tr key={aluno.id}>
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          className="action-btn edit"
-                          onClick={() => abrirEdicao(aluno)}
-                          title="Editar aluno"
-                        >
-                          <Pencil size={15} />
-                        </button>
-
-                        <button
-                          className="action-btn delete"
-                          onClick={() => abrirExclusao(aluno)}
-                          title="Excluir aluno"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-
-                    <td>
-                      <div className="student-cell">
-                        <div className="avatar">{iniciais(aluno.nome)}</div>
-                        <span>{aluno.nome}</span>
-                      </div>
-                    </td>
-
-                    <td>{aluno.cpf}</td>
-                    <td>{aluno.telefone}</td>
-                    <td>{aluno.email}</td>
-                    <td>
-                      {formatarData(
-                        aluno.dataNascimento || aluno.data_nascimento
-                      )}
-                    </td>
-                    <td className="address-cell">{aluno.endereco}</td>
-
-                    <td>
-                      <span
-                        className={`badge plano-${(
-                          aluno.plano || ""
-                        ).toLowerCase()}`}
-                      >
-                        {aluno.plano || "-"}
-                      </span>
-                    </td>
-
-                    <td>
-                      <span
-                        className={`badge status-${(
-                          aluno.status || ""
-                        ).toLowerCase()}`}
-                      >
-                        {aluno.status || "-"}
-                      </span>
-                    </td>
-
-
-                    <td>{formatarData(aluno.matricula)}</td>
-
-
-                    <td>
-                      <div className="password-cell">
-                        <span>
-                          {senhaVisivelId === aluno.id
-                            ? aluno.senha || ""
-                            : "••••••••"}
-                        </span>
-
-                        <button
-                          className="btn-eye"
-                          onClick={() =>
-                            setSenhaVisivelId(
-                              senhaVisivelId === aluno.id ? null : aluno.id
-                            )
-                          }
-                        >
-                          {senhaVisivelId === aluno.id ? (
-                            <EyeOff size={15} />
-                          ) : (
+                {alunosPaginados.length > 0 ? (
+                  alunosPaginados.map((aluno) => (
+                    <tr key={aluno.id}>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            className="action-btn view"
+                            onClick={() =>
+                              abrirVisualizacao(aluno)
+                            }
+                            title="Visualizar aluno"
+                          >
                             <Eye size={15} />
-                          )}
-                        </button>
-                      </div>
+                          </button>
+
+                          <button
+                            className="action-btn edit"
+                            onClick={() => abrirEdicao(aluno)}
+                            title="Editar aluno"
+                          >
+                            <Pencil size={15} />
+                          </button>
+
+                          <button
+                            className="action-btn delete"
+                            onClick={() =>
+                              abrirExclusao(aluno)
+                            }
+                            title="Excluir aluno"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+
+                      <td>
+                        <div className="student-cell">
+                          <div className="avatar">
+                            {iniciais(aluno.nome)}
+                          </div>
+
+                          <span>{aluno.nome}</span>
+                        </div>
+                      </td>
+
+                      <td>{aluno.cpf}</td>
+                      <td>{aluno.telefone}</td>
+                      <td>{aluno.email}</td>
+
+                      <td>
+                        {formatarData(
+                          aluno.dataNascimento ||
+                            aluno.data_nascimento
+                        )}
+                      </td>
+
+                      <td className="address-cell">
+                        {aluno.endereco}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`badge plano-${(
+                            aluno.plano || ""
+                          ).toLowerCase()}`}
+                        >
+                          {aluno.plano || "-"}
+                        </span>
+                      </td>
+
+                      <td>
+                        <span
+                          className={`badge status-${(
+                            aluno.status_assinatura ||
+                            aluno.status ||
+                            ""
+                          ).toLowerCase()}`}
+                        >
+                          {aluno.status_assinatura ||
+                            aluno.status ||
+                            "-"}
+                        </span>
+                      </td>
+
+                      <td>
+                        {formatarData(
+                          String(aluno.matricula || "")
+                        )}
+                      </td>
+
+                      <td>
+                        <div className="password-cell">
+                          <span>
+                            {senhaVisivelId === aluno.id
+                              ? aluno.senha || ""
+                              : "••••••••"}
+                          </span>
+
+                          <button
+                            className="btn-eye"
+                            onClick={() =>
+                              setSenhaVisivelId(
+                                senhaVisivelId === aluno.id
+                                  ? null
+                                  : aluno.id
+                              )
+                            }
+                            title={
+                              senhaVisivelId === aluno.id
+                                ? "Ocultar senha"
+                                : "Visualizar senha"
+                            }
+                          >
+                            {senhaVisivelId === aluno.id ? (
+                              <EyeOff size={15} />
+                            ) : (
+                              <Eye size={15} />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="11"
+                      className="empty-table"
+                    >
+                      Nenhum aluno encontrado.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
 
           <footer className="table-footer">
             <span>
-              Mostrando 1 a {alunosFiltrados.length} de {alunos.length} alunos
+              {alunosFiltrados.length === 0
+                ? "Nenhum aluno encontrado"
+                : `Mostrando ${
+                    (paginaAtual - 1) * alunosPorPagina + 1
+                  } a ${Math.min(
+                    paginaAtual * alunosPorPagina,
+                    alunosFiltrados.length
+                  )} de ${
+                    alunosFiltrados.length
+                  } alunos`}
             </span>
 
-            <div className="pagination">
-              <button>‹</button>
-              <button className="active">1</button>
-              <button>2</button>
-              <button>3</button>
-              <button>...</button>
-              <button>50</button>
-              <button>›</button>
-            </div>
           </footer>
         </section>
       </main>
 
-      {modalAdicionarAberto && (
-        <ModalCadastroPessoa
-          titulo="Novo Aluno"
-          dados={novoAluno}
-          setDados={setNovoAluno}
-          onClose={() => setModalAdicionarAberto(false)}
-          onSave={salvarNovoAluno}
-          textoBotao="Salvar"
-          mostrarPlano={true}
-          mostrarCargo={true}
-          planos={planos}
-          cargos={cargos}
+      {alunoVisualizando && (
+        <ModalPerfil
+          aluno={alunoVisualizando}
+          pessoa={alunoVisualizando}
+          dados={alunoVisualizando}
+          onClose={() => setAlunoVisualizando(null)}
         />
       )}
 
@@ -500,7 +654,9 @@ export default function Alunos() {
 
               <button
                 className="modal-close"
-                onClick={() => setModalEditarAberto(false)}
+                onClick={() =>
+                  setModalEditarAberto(false)
+                }
               >
                 <X size={18} />
               </button>
@@ -509,6 +665,7 @@ export default function Alunos() {
             <div className="modal-grid">
               <div className="input-group">
                 <label>Nome completo *</label>
+
                 <input
                   value={alunoEditando.nome || ""}
                   onChange={(e) =>
@@ -522,6 +679,7 @@ export default function Alunos() {
 
               <div className="input-group">
                 <label>CPF *</label>
+
                 <input
                   value={alunoEditando.cpf || ""}
                   onChange={(e) =>
@@ -535,6 +693,7 @@ export default function Alunos() {
 
               <div className="input-group">
                 <label>E-mail *</label>
+
                 <input
                   type="email"
                   value={alunoEditando.email || ""}
@@ -549,6 +708,7 @@ export default function Alunos() {
 
               <div className="input-group">
                 <label>Telefone *</label>
+
                 <input
                   value={alunoEditando.telefone || ""}
                   onChange={(e) =>
@@ -562,6 +722,7 @@ export default function Alunos() {
 
               <div className="input-group">
                 <label>Data de nascimento *</label>
+
                 <input
                   type="date"
                   value={
@@ -580,6 +741,7 @@ export default function Alunos() {
 
               <div className="input-group">
                 <label>Endereço *</label>
+
                 <input
                   value={alunoEditando.endereco || ""}
                   onChange={(e) =>
@@ -593,6 +755,7 @@ export default function Alunos() {
 
               <div className="input-group">
                 <label>Plano *</label>
+
                 <select
                   value={alunoEditando.plano_id || ""}
                   onChange={(e) =>
@@ -602,7 +765,10 @@ export default function Alunos() {
                     })
                   }
                 >
-                  <option value="">Selecione um plano</option>
+                  <option value="">
+                    Selecione um plano
+                  </option>
+
                   {planos.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.nome_plano}
@@ -613,25 +779,34 @@ export default function Alunos() {
 
               <div className="input-group">
                 <label>Status *</label>
-                <select
 
-                  value={alunoEditando.status_assinatura || alunoEditando.status || ""}
+                <select
+                  value={
+                    alunoEditando.status_assinatura ||
+                    alunoEditando.status ||
+                    ""
+                  }
                   onChange={(e) =>
                     setAlunoEditando({
                       ...alunoEditando,
                       status_assinatura: e.target.value,
-
+                      status: e.target.value,
                     })
                   }
                 >
                   <option value="Ativo">Ativo</option>
-                  <option value="Inadimplente">Inadimplente</option>
-                  <option value="Cancelado">Cancelado</option>
+                  <option value="Inadimplente">
+                    Inadimplente
+                  </option>
+                  <option value="Cancelado">
+                    Cancelado
+                  </option>
                 </select>
               </div>
 
               <div className="input-group input-full">
                 <label>Senha</label>
+
                 <input
                   type="password"
                   value={alunoEditando.senha || ""}
@@ -648,12 +823,17 @@ export default function Alunos() {
             <div className="modal-footer">
               <button
                 className="btn btn--outline"
-                onClick={() => setModalEditarAberto(false)}
+                onClick={() =>
+                  setModalEditarAberto(false)
+                }
               >
                 Cancelar
               </button>
 
-              <button className="btn btn--primary" onClick={salvarEdicao}>
+              <button
+                className="btn btn--primary"
+                onClick={salvarEdicao}
+              >
                 Salvar alterações
               </button>
             </div>
@@ -672,7 +852,9 @@ export default function Alunos() {
 
               <button
                 className="modal-close"
-                onClick={() => setModalExcluirAberto(false)}
+                onClick={() =>
+                  setModalExcluirAberto(false)
+                }
               >
                 <X size={18} />
               </button>
@@ -680,46 +862,79 @@ export default function Alunos() {
 
             <div className="alert-box">
               <AlertTriangle size={20} />
+
               <div>
                 <strong>Atenção!</strong>
-                <p>Esta ação não poderá ser desfeita.</p>
+
+                <p>
+                  Esta ação não poderá ser desfeita.
+                </p>
               </div>
             </div>
 
-            <p className="delete-question">Deseja excluir este aluno?</p>
+            <p className="delete-question">
+              Deseja excluir este aluno?
+            </p>
 
             <div className="delete-info">
               <strong>{alunoExcluindo.nome}</strong>
+
               <div>
-                <span>CPF: {alunoExcluindo.cpf}</span>
-                <span>Plano: {alunoExcluindo.plano || "-"}</span>
+                <span>
+                  CPF: {alunoExcluindo.cpf}
+                </span>
 
-                <span>Status: {alunoExcluindo.status_assinatura || "-"}</span>
+                <span>
+                  Plano: {alunoExcluindo.plano || "-"}
+                </span>
 
-                <span>Matrícula: {alunoExcluindo.matricula}</span>
+                <span>
+                  Status:{" "}
+                  {alunoExcluindo.status_assinatura ||
+                    alunoExcluindo.status ||
+                    "-"}
+                </span>
+
+                <span>
+                  Matrícula: {alunoExcluindo.matricula}
+                </span>
+
                 <span>
                   Nascimento:{" "}
                   {formatarData(
                     alunoExcluindo.dataNascimento ||
-                    alunoExcluindo.data_nascimento
-
+                      alunoExcluindo.data_nascimento
                   )}
                 </span>
-                <span>E-mail: {alunoExcluindo.email}</span>
-                <span>Telefone: {alunoExcluindo.telefone}</span>
-                <span>Endereço: {alunoExcluindo.endereco}</span>
+
+                <span>
+                  E-mail: {alunoExcluindo.email}
+                </span>
+
+                <span>
+                  Telefone: {alunoExcluindo.telefone}
+                </span>
+
+                <span>
+                  Endereço: {alunoExcluindo.endereco}
+                </span>
               </div>
             </div>
 
             <div className="modal-footer">
               <button
                 className="btn btn--outline"
-                onClick={() => setModalExcluirAberto(false)}
+                onClick={() =>
+                  setModalExcluirAberto(false)
+                }
               >
                 Cancelar
               </button>
 
-              <button className="btn btn--danger" onClick={confirmarExclusao}>
+              <button
+                className="btn btn--danger"
+                onClick={confirmarExclusao}
+              >
                 Excluir aluno
               </button>
             </div>
