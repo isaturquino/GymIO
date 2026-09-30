@@ -52,3 +52,9 @@ export async function buscarResumoFinanceiro() {
 export async function buscarGraficoFinanceiro() {
   return request(`${API_URL}/grafico`);
 }
+
+export async function buscarAlunosFinanceiro(nome) {
+  return request(
+    `${API_URL}/alunos?nome=${encodeURIComponent(nome)}`
+  );
+}

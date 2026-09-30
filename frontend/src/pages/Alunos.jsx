@@ -21,7 +21,6 @@ import api from "../services/api";
 
 const API = "/pessoas";
 
-
 export default function Alunos() {
   const [alunos, setAlunos] = useState([]);
   const [planos, setPlanos] = useState([]);
@@ -56,15 +55,16 @@ export default function Alunos() {
 
   async function carregarDados() {
     try {
-      const [alunosRes, totalRes, planosRes, cargosRes] = await Promise.all([
-        api.get(`${API}?tipo=aluno`),
-        api.get(`${API}/total-alunos`),
-        api.get(`${API}/planos`),
-        api.get(`${API}/cargos`),
-      ]);
+      const [alunosRes, indicadoresRes, planosRes, cargosRes] =
+        await Promise.all([
+          api.get(`${API}?tipo=aluno`),
+          api.get(`${API}/indicadores`),
+          api.get(`${API}/planos`),
+          api.get(`${API}/cargos`),
+        ]);
 
       const alunosData = alunosRes.data;
-      const totalData = totalRes.data;
+      const indicadoresData = indicadoresRes.data;
       const planosData = planosRes.data;
       const cargosData = cargosRes.data;
 
@@ -74,37 +74,17 @@ export default function Alunos() {
       setPlanos(Array.isArray(planosData) ? planosData : []);
       setCargos(Array.isArray(cargosData) ? cargosData : []);
 
-      const agora = new Date();
-      const mesAtual = agora.getMonth();
-      const anoAtual = agora.getFullYear();
-
-      const novosMes = listaAlunos.filter((aluno) => {
-        const data =
-          aluno.dataMatricula ||
-          aluno.data_matricula ||
-          aluno.dataCadastro ||
-          aluno.data_cadastro;
-
-        if (!data) return false;
-
-        const dataAluno = new Date(data);
-
-        return (
-          dataAluno.getMonth() === mesAtual &&
-          dataAluno.getFullYear() === anoAtual
-        );
-      }).length;
-
-      const cancelamentos = listaAlunos.filter((aluno) => {
+      const total = listaAlunos.filter((aluno) => {
         const status =
           aluno.status_assinatura ||
           aluno.status ||
           "";
 
-        return status.toLowerCase() === "cancelado";
+        return status.toLowerCase() !== "cancelado";
       }).length;
 
-      const total = totalData?.totalAlunos ?? listaAlunos.length;
+      const novosMes = indicadoresData?.novosMes ?? 0;
+      const cancelamentos = indicadoresData?.cancelamentos ?? 0;
 
       setStats({
         total,
@@ -130,51 +110,38 @@ export default function Alunos() {
 
   async function recarregarAlunos() {
     try {
-      const res = await api.get(`${API}?tipo=aluno`);
-      const data = res.data;
+      const [alunosRes, indicadoresRes] = await Promise.all([
+        api.get(`${API}?tipo=aluno`),
+        api.get(`${API}/indicadores`),
+      ]);
+
+      const data = alunosRes.data;
+      const indicadoresData = indicadoresRes.data;
 
       const listaAlunos = Array.isArray(data) ? data : [];
 
       setAlunos(listaAlunos);
 
-      const agora = new Date();
-      const mesAtual = agora.getMonth();
-      const anoAtual = agora.getFullYear();
-
-      const novosMes = listaAlunos.filter((aluno) => {
-        const data =
-          aluno.dataMatricula ||
-          aluno.data_matricula ||
-          aluno.dataCadastro ||
-          aluno.data_cadastro;
-
-        if (!data) return false;
-
-        const dataAluno = new Date(data);
-
-        return (
-          dataAluno.getMonth() === mesAtual &&
-          dataAluno.getFullYear() === anoAtual
-        );
-      }).length;
-
-      const cancelamentos = listaAlunos.filter((aluno) => {
+      const total = listaAlunos.filter((aluno) => {
         const status =
           aluno.status_assinatura ||
           aluno.status ||
           "";
 
-        return status.toLowerCase() === "cancelado";
+        return status.toLowerCase() !== "cancelado";
       }).length;
+
+      const novosMes = indicadoresData?.novosMes ?? 0;
+      const cancelamentos = indicadoresData?.cancelamentos ?? 0;
 
       setStats((prev) => ({
         ...prev,
-        total: listaAlunos.length,
+        total,
         novosMes,
         cancelamentos,
         crescimento:
-          listaAlunos.length > 0
-            ? ((novosMes / listaAlunos.length) * 100).toFixed(1)
+          total > 0
+            ? ((novosMes / total) * 100).toFixed(1)
             : 0,
       }));
     } catch (err) {
@@ -307,20 +274,97 @@ export default function Alunos() {
     setModalExcluirAberto(true);
   }
 
+  function dataEhDesteMes(data) {
+    if (!data) return false;
+
+    const valor = String(data).trim();
+
+    if (!valor) return false;
+
+    let ano;
+    let mes;
+
+    if (valor.includes("-")) {
+      const partes = valor.split("-");
+
+      ano = Number(partes[0]);
+      mes = Number(partes[1]);
+    } else if (valor.includes("/")) {
+      const partes = valor.split("/");
+
+      if (partes.length !== 3) return false;
+
+      ano = Number(partes[2]);
+      mes = Number(partes[1]);
+    }
+
+    if (!ano || !mes) return false;
+
+    const hoje = new Date();
+
+    return (
+      ano === hoje.getFullYear() &&
+      mes === hoje.getMonth() + 1
+    );
+  }
+
   async function confirmarExclusao() {
     if (!alunoExcluindo) return;
 
     try {
-      await api.delete(`${API}/${alunoExcluindo.id}`);
+      const aluno = alunoExcluindo;
+
+      const status = (
+        aluno.status_assinatura ||
+        aluno.status ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+
+      const ehCancelado = status === "cancelado";
+
+      const dataMatricula =
+        aluno.dataMatricula ||
+        aluno.data_matricula ||
+        aluno.dataCadastro ||
+        aluno.data_cadastro ||
+        aluno.matricula;
+
+      const ehNovoEsteMes = dataEhDesteMes(dataMatricula);
+
+      await api.delete(`${API}/${aluno.id}`);
 
       setAlunos((lista) =>
-        lista.filter((a) => a.id !== alunoExcluindo.id)
+        lista.filter((a) => a.id !== aluno.id)
       );
+
+      setStats((prev) => {
+        const novoTotal = ehCancelado
+          ? prev.total
+          : Math.max(0, prev.total - 1);
+
+        const novosMes = ehNovoEsteMes
+          ? Math.max(0, prev.novosMes - 1)
+          : prev.novosMes;
+
+        const cancelamentos = ehCancelado
+          ? Math.max(0, prev.cancelamentos - 1)
+          : prev.cancelamentos;
+
+        return {
+          total: novoTotal,
+          novosMes,
+          cancelamentos,
+          crescimento:
+            novoTotal > 0
+              ? ((novosMes / novoTotal) * 100).toFixed(1)
+              : 0,
+        };
+      });
 
       setModalExcluirAberto(false);
       setAlunoExcluindo(null);
-
-      await recarregarAlunos();
 
       alert("Aluno excluído com sucesso!");
     } catch (err) {
@@ -369,7 +413,6 @@ export default function Alunos() {
             <h1>Gestão de Alunos</h1>
             <p>Cadastro e controle dos alunos da academia</p>
           </div>
-
         </header>
 
         <section className="stats-grid">
@@ -629,7 +672,6 @@ export default function Alunos() {
                     alunosFiltrados.length
                   } alunos`}
             </span>
-
           </footer>
         </section>
       </main>
@@ -795,9 +837,11 @@ export default function Alunos() {
                   }
                 >
                   <option value="Ativo">Ativo</option>
+
                   <option value="Inadimplente">
                     Inadimplente
                   </option>
+
                   <option value="Cancelado">
                     Cancelado
                   </option>

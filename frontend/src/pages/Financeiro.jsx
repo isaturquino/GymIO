@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../layout/Sidebar";
 import "../styles/financeiro.css";
@@ -10,6 +11,7 @@ import {
   excluirTransacao,
   buscarResumoFinanceiro,
   buscarGraficoFinanceiro,
+  buscarAlunosFinanceiro,
 } from "../services/financeiroService";
 
 const money = (value) =>
@@ -103,8 +105,10 @@ function Financeiro() {
       setChartData(grafico);
     } catch (error) {
       console.error("Erro ao carregar Financeiro:", error);
+
       setError(
-        error.message || "Não foi possível carregar os dados financeiros."
+        error.message ||
+          "Não foi possível carregar os dados financeiros."
       );
     } finally {
       setLoading(false);
@@ -256,7 +260,8 @@ function Financeiro() {
       console.error("Erro ao salvar:", error);
 
       setError(
-        error.message || "Não foi possível salvar a transação."
+        error.message ||
+          "Não foi possível salvar a transação."
       );
     } finally {
       setSaving(false);
@@ -284,7 +289,8 @@ function Financeiro() {
       console.error("Erro ao excluir:", error);
 
       setError(
-        error.message || "Não foi possível excluir a transação."
+        error.message ||
+          "Não foi possível excluir a transação."
       );
     } finally {
       setSaving(false);
@@ -464,6 +470,7 @@ function Financeiro() {
             </div>
 
             <div className="chart-legend">
+
               <span>
                 <i className="legend-dot legend-dot--green" />
                 Receitas
@@ -473,6 +480,7 @@ function Financeiro() {
                 <i className="legend-dot legend-dot--red" />
                 Despesas
               </span>
+
             </div>
 
           </div>
@@ -495,28 +503,37 @@ function Financeiro() {
             >
 
               <div className="chart-y-labels">
+
                 <span>
                   {money(chartPoints.maiorValor || 0)}
                 </span>
 
                 <span>
-                  {money((chartPoints.maiorValor || 0) * 0.75)}
+                  {money(
+                    (chartPoints.maiorValor || 0) * 0.75
+                  )}
                 </span>
 
                 <span>
-                  {money((chartPoints.maiorValor || 0) * 0.5)}
+                  {money(
+                    (chartPoints.maiorValor || 0) * 0.5
+                  )}
                 </span>
 
                 <span>
-                  {money((chartPoints.maiorValor || 0) * 0.25)}
+                  {money(
+                    (chartPoints.maiorValor || 0) * 0.25
+                  )}
                 </span>
 
                 <span>R$ 0</span>
+
               </div>
 
               <div className="chart-area">
 
                 <div className="chart-grid-lines">
+                  <span />
                   <span />
                   <span />
                   <span />
@@ -542,15 +559,17 @@ function Financeiro() {
                         className="chart-line chart-line--green"
                       />
 
-                      {chartPoints.receitas.map((point, index) => (
-                        <circle
-                          key={`receita-${index}`}
-                          cx={point.x}
-                          cy={point.y}
-                          r="4"
-                          className="chart-point chart-point--green"
-                        />
-                      ))}
+                      {chartPoints.receitas.map(
+                        (point, index) => (
+                          <circle
+                            key={`receita-${index}`}
+                            cx={point.x}
+                            cy={point.y}
+                            r="4"
+                            className="chart-point chart-point--green"
+                          />
+                        )
+                      )}
                     </>
                   )}
 
@@ -566,15 +585,17 @@ function Financeiro() {
                         className="chart-line chart-line--red"
                       />
 
-                      {chartPoints.despesas.map((point, index) => (
-                        <circle
-                          key={`despesa-${index}`}
-                          cx={point.x}
-                          cy={point.y}
-                          r="4"
-                          className="chart-point chart-point--red"
-                        />
-                      ))}
+                      {chartPoints.despesas.map(
+                        (point, index) => (
+                          <circle
+                            key={`despesa-${index}`}
+                            cx={point.x}
+                            cy={point.y}
+                            r="4"
+                            className="chart-point chart-point--red"
+                          />
+                        )
+                      )}
                     </>
                   )}
 
@@ -591,6 +612,7 @@ function Financeiro() {
                 </div>
 
               </div>
+
             </div>
           )}
 
@@ -685,104 +707,108 @@ function Financeiro() {
                       </td>
                     </tr>
                   ) : (
-                    visibleTransactions.map((transaction) => (
-                      <tr key={transaction.id}>
+                    visibleTransactions.map(
+                      (transaction) => (
+                        <tr key={transaction.id}>
 
-                        <td>
-                          <div className="student-cell">
+                          <td>
+                            <div className="student-cell">
 
-                            <span className="avatar">
-                              {transaction.initials}
+                              <span className="avatar">
+                                {transaction.initials}
+                              </span>
+
+                              <strong>
+                                {transaction.aluno}
+                              </strong>
+
+                            </div>
+                          </td>
+
+                          <td>
+                            <span
+                              className={`type-badge type-badge--${transaction.tipo}`}
+                            >
+                              {transaction.tipo === "receber"
+                                ? "A Receber"
+                                : "A Pagar"}
                             </span>
+                          </td>
 
-                            <strong>
-                              {transaction.aluno}
-                            </strong>
+                          <td>
+                            {transaction.descricao || "-"}
+                          </td>
 
-                          </div>
-                        </td>
+                          <td className="value-cell">
+                            {money(transaction.valor)}
+                          </td>
 
-                        <td>
-                          <span
-                            className={`type-badge type-badge--${transaction.tipo}`}
-                          >
-                            {transaction.tipo === "receber"
-                              ? "A Receber"
-                              : "A Pagar"}
-                          </span>
-                        </td>
+                          <td>
+                            {date(transaction.vencimento)}
+                          </td>
 
-                        <td>
-                          {transaction.descricao || "-"}
-                        </td>
-
-                        <td className="value-cell">
-                          {money(transaction.valor)}
-                        </td>
-
-                        <td>
-                          {date(transaction.vencimento)}
-                        </td>
-
-                        <td>
-                          <span
-                            className={`status-badge status-${(
-                              transaction.status || "Pendente"
-                            ).toLowerCase()}`}
-                          >
-                            {transaction.status || "Pendente"}
-                          </span>
-                        </td>
-
-                        <td>
-
-                          <div className="table-actions">
-
-                            {/* EDITAR */}
-
-                            <button
-                              type="button"
-                              className="action-btn edit"
-                              title="Editar"
-                              onClick={() =>
-                                openEditModal(transaction)
-                              }
+                          <td>
+                            <span
+                              className={`status-badge status-${(
+                                transaction.status ||
+                                "Pendente"
+                              ).toLowerCase()}`}
                             >
-                              ✎
-                            </button>
+                              {transaction.status ||
+                                "Pendente"}
+                            </span>
+                          </td>
 
-                            {/* EXCLUIR */}
+                          <td>
 
-                            <button
-                              type="button"
-                              className="action-btn delete"
-                              title="Excluir"
-                              onClick={() =>
-                                openDeleteModal(transaction)
-                              }
-                            >
-                              ×
-                            </button>
+                            <div className="table-actions">
 
-                            {/* DETALHES */}
+                              {/* EDITAR */}
 
-                            <button
-                              type="button"
-                              className="action-btn details"
-                              title="Detalhes"
-                              onClick={() =>
-                                openDetailsModal(transaction)
-                              }
-                            >
-                              ⓘ
-                            </button>
+                              <button
+                                type="button"
+                                className="action-btn edit"
+                                title="Editar"
+                                onClick={() =>
+                                  openEditModal(transaction)
+                                }
+                              >
+                                ✎
+                              </button>
 
-                          </div>
+                              {/* EXCLUIR */}
 
-                        </td>
+                              <button
+                                type="button"
+                                className="action-btn delete"
+                                title="Excluir"
+                                onClick={() =>
+                                  openDeleteModal(transaction)
+                                }
+                              >
+                                ×
+                              </button>
 
-                      </tr>
-                    ))
+                              {/* DETALHES */}
+
+                              <button
+                                type="button"
+                                className="action-btn details"
+                                title="Detalhes"
+                                onClick={() =>
+                                  openDetailsModal(transaction)
+                                }
+                              >
+                                ⓘ
+                              </button>
+
+                            </div>
+
+                          </td>
+
+                        </tr>
+                      )
+                    )
                   )}
 
                   {!loading &&
@@ -815,7 +841,9 @@ function Financeiro() {
                 <button
                   disabled={currentPage === 1}
                   onClick={() =>
-                    setCurrentPage((page) => page - 1)
+                    setCurrentPage(
+                      (page) => page - 1
+                    )
                   }
                 >
                   ‹
@@ -841,9 +869,13 @@ function Financeiro() {
                 ))}
 
                 <button
-                  disabled={currentPage === totalPages}
+                  disabled={
+                    currentPage === totalPages
+                  }
                   onClick={() =>
-                    setCurrentPage((page) => page + 1)
+                    setCurrentPage(
+                      (page) => page + 1
+                    )
                   }
                 >
                   ›
@@ -970,6 +1002,7 @@ function Financeiro() {
             )}
 
           </div>
+
         </div>
       )}
 
@@ -1032,6 +1065,72 @@ function TransactionFormModal({
   onClose,
   submitLabel,
 }) {
+  // ==========================================================
+  // BUSCA DE ALUNOS
+  // ==========================================================
+
+  const [alunos, setAlunos] = useState([]);
+  const [buscandoAlunos, setBuscandoAlunos] =
+    useState(false);
+  const [mostrarAlunos, setMostrarAlunos] =
+    useState(false);
+
+  useEffect(() => {
+    const nome = form.aluno.trim();
+
+    if (!nome) {
+      setAlunos([]);
+      setMostrarAlunos(false);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        setBuscandoAlunos(true);
+        setMostrarAlunos(true);
+
+        const resultado =
+          await buscarAlunosFinanceiro(nome);
+
+        setAlunos(
+          Array.isArray(resultado)
+            ? resultado
+            : []
+        );
+      } catch (error) {
+        console.error(
+          "Erro ao buscar alunos:",
+          error
+        );
+
+        setAlunos([]);
+      } finally {
+        setBuscandoAlunos(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [form.aluno]);
+
+  // ==========================================================
+  // SELECIONAR ALUNO
+  // ==========================================================
+
+  function selecionarAluno(aluno) {
+    onChange({
+      target: {
+        name: "aluno",
+        value: aluno.nome,
+      },
+    });
+
+    setMostrarAlunos(false);
+  }
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
     <form
       className="modal-form"
@@ -1107,7 +1206,13 @@ function TransactionFormModal({
 
       <div className="modal-grid">
 
-        <div className="input-group input-full">
+        {/* ================================================== */}
+        {/* ALUNO COM AUTOCOMPLETE */}
+        {/* ================================================== */}
+
+        <div
+          className="input-group input-full aluno-autocomplete"
+        >
 
           <label htmlFor="aluno">
             Aluno (opcional)
@@ -1117,11 +1222,84 @@ function TransactionFormModal({
             id="aluno"
             name="aluno"
             value={form.aluno}
-            onChange={onChange}
-            placeholder="Informe o nome do aluno cadastrado..."
+            onChange={(event) => {
+              onChange(event);
+
+              if (
+                event.target.value.trim()
+              ) {
+                setMostrarAlunos(true);
+              } else {
+                setMostrarAlunos(false);
+              }
+            }}
+            onFocus={() => {
+              if (form.aluno.trim()) {
+                setMostrarAlunos(true);
+              }
+            }}
+            placeholder="Digite o nome do aluno..."
+            autoComplete="off"
           />
 
+          {/* LISTA DE SUGESTÕES */}
+
+          {mostrarAlunos &&
+            form.aluno.trim() && (
+              <div className="aluno-suggestions">
+
+                {/* BUSCANDO */}
+
+                {buscandoAlunos && (
+                  <div className="aluno-suggestion loading">
+                    Buscando alunos...
+                  </div>
+                )}
+
+                {/* ALUNOS ENCONTRADOS */}
+
+                {!buscandoAlunos &&
+                  alunos.length > 0 &&
+                  alunos.map((aluno) => (
+                    <button
+                      key={aluno.id}
+                      type="button"
+                      className="aluno-suggestion"
+                      onClick={() =>
+                        selecionarAluno(aluno)
+                      }
+                    >
+
+                      <span className="aluno-suggestion-name">
+                        {aluno.nome}
+                      </span>
+
+                      {aluno.cpf && (
+                        <span className="aluno-suggestion-cpf">
+                          CPF: {aluno.cpf}
+                        </span>
+                      )}
+
+                    </button>
+                  ))}
+
+                {/* NENHUM ALUNO */}
+
+                {!buscandoAlunos &&
+                  alunos.length === 0 && (
+                    <div className="aluno-suggestion not-found">
+                      Aluno não encontrado
+                    </div>
+                  )}
+
+              </div>
+            )}
+
         </div>
+
+        {/* ================================================== */}
+        {/* VALOR */}
+        {/* ================================================== */}
 
         <div className="input-group">
 
@@ -1143,6 +1321,10 @@ function TransactionFormModal({
 
         </div>
 
+        {/* ================================================== */}
+        {/* VENCIMENTO */}
+        {/* ================================================== */}
+
         <div className="input-group">
 
           <label htmlFor="vencimento">
@@ -1159,6 +1341,10 @@ function TransactionFormModal({
           />
 
         </div>
+
+        {/* ================================================== */}
+        {/* CATEGORIA */}
+        {/* ================================================== */}
 
         <div className="input-group">
 
@@ -1202,6 +1388,10 @@ function TransactionFormModal({
 
         </div>
 
+        {/* ================================================== */}
+        {/* STATUS */}
+        {/* ================================================== */}
+
         <div className="input-group">
 
           <label htmlFor="status">
@@ -1231,6 +1421,10 @@ function TransactionFormModal({
           </select>
 
         </div>
+
+        {/* ================================================== */}
+        {/* DESCRIÇÃO */}
+        {/* ================================================== */}
 
         <div className="input-group input-full">
 
